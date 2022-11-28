@@ -6,7 +6,9 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a650b8b5-c14a-490f-bd72-bc8cbb46c4fb" name="Changes" comment="" />
+    <list default="true" id="a650b8b5-c14a-490f-bd72-bc8cbb46c4fb" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/ass_file.layout" beforeDir="false" afterPath="$PROJECT_DIR$/ass_file.layout" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -45,6 +47,7 @@
       <updated>1669585677680</updated>
       <workItem from="1669585679466" duration="15000" />
       <workItem from="1669585718596" duration="7000" />
+      <workItem from="1669586539616" duration="3000" />
     </task>
     <servers />
   </component>

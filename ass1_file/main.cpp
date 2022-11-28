@@ -14,30 +14,32 @@ void addEmployees(string fileName,string EID, string DID, string EName, string E
     int recordLength = EID.size()+DID.size()+EName.size()+EPosition.size()+4;
     if( f.is_open() )
     {
+        int temp=0;
         char indicator[3];
         if(recordLength < 100 && recordLength > 9)
         {
-            //f<<std::string(temp)<<std::string(recordLength);
-            indicator[0]='0';
+            f<<temp;
+            f<<recordLength;
+            /*indicator[0]='0';
             indicator[1]=recordLength%10;
             indicator[2]=recordLength%100-indicator[1];
-            cout<<recordLength%10<<endl;
+            cout<<recordLength%10<<endl;*/
 
         }
         else if(recordLength<10)
         {
-            //f<<temp<<temp<<recordLength;
-            indicator[0]='0';
+            f<<temp<<temp<<recordLength;
+            /*indicator[0]='0';
             indicator[1]='0';
             int i=recordLength%10;
-            indicator[2] = static_cast<char>(i);
+            indicator[2] = static_cast<char>(i);*/
         }
         else
         {
-            //f<<recordLength;
-            indicator[2] = (char)recordLength%10;
+            f<<recordLength;
+            /*indicator[2] = (char)recordLength%10;
             indicator[1] = (char)(recordLength%100-indicator[2]);
-            indicator[0] = (char)(recordLength%1000-indicator[1]-indicator[2]);
+            indicator[0] = (char)(recordLength%1000-indicator[1]-indicator[2]);*/
         }
         for(int i=0 ;i<3;i++){
             f<<indicator[i];
@@ -50,10 +52,11 @@ void addEmployees(string fileName,string EID, string DID, string EName, string E
 int main() {
 
     fstream Employees,Department;
-    Employees.open("Employees.txt", ios::out | ios::trunc );
+    Employees.open("Employees.txt", ios::out | ios::in | ios::app);
     Department.open("Department",ios::in | ios::out);
 
     addEmployees("Employees.txt","2","i","m","s");
+    addEmployees("Employees.txt","30","monica","is","student");
 
 }
 

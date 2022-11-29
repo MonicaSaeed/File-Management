@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 
 using namespace std;
 /*long BinarySearch(fstream f, string ID)
@@ -10,12 +11,19 @@ using namespace std;
 
 void addEmployees(string fileName,string EID, string DID, string EName, string EPosition)
 {
-    fstream f(fileName.c_str()); //opens file
+    fstream f(fileName.c_str(),ios::app); //opens file
     int recordLength = EID.size()+DID.size()+EName.size()+EPosition.size()+4;
     if( f.is_open() )
     {
-        int temp=0;
-        char indicator[3];
+        cout << setfill ('0') << setw (3);
+        cout << recordLength << endl;
+
+        f << setfill ('0') << setw (3);
+        f << recordLength ;
+
+
+        /*int temp=0,temp2;
+        int indicator[3];
         if(recordLength < 100 && recordLength > 9)
         {
             f<<temp;
@@ -23,41 +31,48 @@ void addEmployees(string fileName,string EID, string DID, string EName, string E
             /*indicator[0]='0';
             indicator[1]=recordLength%10;
             indicator[2]=recordLength%100-indicator[1];
-            cout<<recordLength%10<<endl;*/
+            cout<<recordLength%10<<endl;*//*
 
         }
         else if(recordLength<10)
         {
+            temp2=(int)recordLength;
             f<<temp<<temp<<recordLength;
             /*indicator[0]='0';
             indicator[1]='0';
             int i=recordLength%10;
-            indicator[2] = static_cast<char>(i);*/
+            indicator[2] = static_cast<char>(i);*//*
         }
         else
         {
             f<<recordLength;
             /*indicator[2] = (char)recordLength%10;
             indicator[1] = (char)(recordLength%100-indicator[2]);
-            indicator[0] = (char)(recordLength%1000-indicator[1]-indicator[2]);*/
+            indicator[0] = (char)(recordLength%1000-indicator[1]-indicator[2]);*//*
         }
-        for(int i=0 ;i<3;i++){
+        for(int i=0 ; i<3; i++)
+        {
             f<<indicator[i];
-        }
+        }*/
         f<<EID<<"$"<<DID<<"$"<<EName<<"$"<<EPosition<<"$";
     }
 }
 
 
-int main() {
+int main()
+{
 
     fstream Employees,Department;
     Employees.open("Employees.txt", ios::out | ios::in | ios::app);
-    Department.open("Department",ios::in | ios::out);
+    Department.open("Department",ios::in | ios::out| ios::app);
 
     addEmployees("Employees.txt","2","i","m","s");
     addEmployees("Employees.txt","30","monica","is","student");
 
+
+
+
+    return 0;
 }
 
 

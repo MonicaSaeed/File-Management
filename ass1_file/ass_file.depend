@@ -7,8 +7,11 @@
 	<iostream>
 	<fstream>
 
-1669758531 source:d:\fcai\fcai-cu-third\1st semester\files\assignmets\assignment1_github\file-management\ass1_file\main.cpp
+1669829545 source:d:\fcai\fcai-cu-third\1st semester\files\assignmets\assignment1_github\file-management\ass1_file\main.cpp
 	<iostream>
 	<fstream>
 	<iomanip>
+	<vector>
+	<string>
+	<bits/stdc++.h>
 

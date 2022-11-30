@@ -3,9 +3,13 @@
 	<iostream>
 	<fstream>
 
-1669633695 source:d:\fcai\third level #1\files\file-management\ass1_file\main.cpp
+1669830817 source:d:\fcai\third level #1\files\file-management\ass1_file\main.cpp
 	<iostream>
 	<fstream>
+	<iomanip>
+	<vector>
+	<string>
+	<bits/stdc++.h>
 
 1669829545 source:d:\fcai\fcai-cu-third\1st semester\files\assignmets\assignment1_github\file-management\ass1_file\main.cpp
 	<iostream>
@@ -14,4 +18,9 @@
 	<vector>
 	<string>
 	<bits/stdc++.h>
+
+1669831783 source:d:\fcai\third level #1\files\file-management\ass1_file\list.cpp
+	"list.h"
+
+1669831783 d:\fcai\third level #1\files\file-management\ass1_file\list.h
 

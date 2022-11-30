@@ -1,67 +1,3 @@
-//#include <iostream>
-//#include <fstream>
-//#include <list>
-//
-//using namespace std;
-//
-//
-//long BinarySearch(fstream f, string ID)
-//{
-//    int _Id = (int)ID;
-//
-//}
-//
-//void addEmployees(fstream f,string EID, string DID, string EName, string EPosition)
-//{
-//    int recordLength = EID.size()+DID.size()+EName.size()+EPosition.size()+4;
-//    if( f.open() )
-//    {
-//        int temp=0;
-//        if(recordLength < 100 && recordLength > 9)
-//        {
-//            f<<temp<<recordLength;
-//        }
-//        else if(recordLength<10)
-//        {
-//            f<<temp<<temp<<recordLength;
-//            /*indicator[0]='0';
-//            indicator[1]='0';
-//            indicator[2] = (char)recordLength%10;*/
-//        }
-//        else
-//        {
-//            f<<recordLength;
-//            /*indicator[2] = (char)recordLength%10;
-//            indicator[1] = (char)(recordLength%100-indicator[2]);
-//            indicator[0] = (char)(recordLength%1000-indicator[1]-indicator[2]);*/
-//        }
-//
-//
-//        f<<indicator;
-//        f<<EID<<"$"<<DID<<"$"<<EName<<"$"<<EPosition<<"$";
-//    }
-//}
-//void PrintEmployee()
-//
-//
-//int main()
-//{
-//    int x=000;
-//    x+=20;
-//    cout<<x<<endl;
-//    x+=100;
-//    cout<<x<<endl;
-//    fstream Employees,Department;
-//    fstream.open("Employees");
-//    fstream.open("Department",ios::in,ios::out);
-//
-//     string s="moinca";
-//    cout << "Hello world!" << endl;
-//    return 0;
-//}
-
-///////////////////////////////////////////////////////////////////////////////////
-
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -301,54 +237,98 @@ public:
     }
 };
 
+void addEmployees(fstream &fileName,fstream &f2,string EID, string DID, string EName, string EPosition);
+int totalRecordsSize=0;
+void addEPrimaryIndex(fstream &EPrimaryIndex, string id,int li);
+string printEmployee(fstream &EPrimaryIndex, string id);
+
 
 /*long BinarySearch(fstream f, string ID)
 {
     int _Id = stoi(ID); // type of explicit type casting
 
 }*/
-int totalRecordsSize=0;
+
+int main()
+{
+
+    fstream Employees,Department,EPrimaryIndex;
+    Employees.open("Employees.txt", ios::out | ios::in | ios::app);
+    Department.open("Department.txt",ios::in | ios::out| ios::app);
+    EPrimaryIndex.open("EPrimaryIndex.txt",ios::in | ios::out| ios::app);
+
+    //addEmployees(Employees,EPrimaryIndex,"2","i","m","s");
+    //addEmployees(Employees,EPrimaryIndex,"30","monica","is","student");
+    cout<<printEmployee(EPrimaryIndex,"30");
+
+
+    return 0;
+}
+
 void addEPrimaryIndex(fstream &EPrimaryIndex, string id,int li)
 {
     EPrimaryIndex.seekp(0,ios::end);
     EPrimaryIndex<<totalRecordsSize<<'&'<<id<<'&';
     totalRecordsSize+=li;
-//////////////////////////////////////////////////
-    vector <pair<string,int>>v;
+}
+string printEmployee(fstream &EPrimaryIndex,string id){ //return byteofficet
+    vector <pair<string,string>>v(0);
     EPrimaryIndex.seekg(0,ios::end);
+    int textLength = (int)EPrimaryIndex.tellg();
     EPrimaryIndex.seekg(0,ios::beg);
-    EPrimaryIndex.seekp(0,ios::beg);
+    int textStart =0;
 
-    char temp1;
-    string Sbo;
-
-    while(temp1!='&')
-    {
+    while(textStart<textLength){
+        char temp1,temp2;
+        string Sbo,SID;
         EPrimaryIndex>>temp1;
-        if(temp1=='&')
+        while(temp1!='&')
         {
             Sbo+=temp1;
+            EPrimaryIndex>>temp1;
         }
-    }
-    char temp2;
-    string SID;
-    while(temp2!='&')
-    {
         EPrimaryIndex>>temp2;
-        if(temp2!='&')
+        while(temp2!='&')
         {
             SID+=temp2;
-
+            EPrimaryIndex>>temp2;
         }
-
+        textStart += (int)EPrimaryIndex.tellg();
+        pair<string,string> p(SID,Sbo);
+        v.push_back(p);
     }
+    sort(v.begin(),v.end());
+
+    int start = 0;
+    int end = (int)v.size()-1;
+    int mid = (start+end)/2;
+    while(start<=end)
+    {
+        if(v[mid].first==id)
+        {
+            return v[mid].second;
+            break;
+        }
+        else if(v[mid].first<id)
+        {
+            start = mid+1;
+        }
+        else
+        {
+            end = mid-1;
+        }
+        mid = (start+end)/2;
+    }
+    if(start>end) //if not found
+    {
+        return "-1";
+    }
+
 }
 
 void addEmployees(fstream &fileName,fstream &f2,string EID, string DID, string EName, string EPosition)
 {
     int recordLength = EID.size()+DID.size()+EName.size()+EPosition.size()+4;
-
-
 
     if( fileName.is_open() )
     {
@@ -359,23 +339,6 @@ void addEmployees(fstream &fileName,fstream &f2,string EID, string DID, string E
     }
     addEPrimaryIndex(f2,EID,recordLength);
 }
-int main()
-{
-
-    fstream Employees,Department,EPrimaryIndex;
-    Employees.open("Employees.txt", ios::out | ios::in | ios::app);
-    Department.open("Department.txt",ios::in | ios::out| ios::app);
-    EPrimaryIndex.open("EPrimaryIndex.txt",ios::in | ios::out| ios::app);
-
-    addEmployees(Employees,EPrimaryIndex,"2","i","m","s");
-    addEmployees(Employees,EPrimaryIndex,"30","monica","is","student");
-
-
-
-
-    return 0;
-}
-
 
 
 

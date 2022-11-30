@@ -3,7 +3,6 @@
 #include <iomanip>
 #include <vector>
 #include <string>
-
 #include<bits/stdc++.h>
 
 using namespace std;
@@ -12,20 +11,24 @@ void addEmployees(fstream &fileName,fstream &f2,string EID, string DID, string E
 int totalRecordsSize=0;
 void addEPrimaryIndex(fstream &EPrimaryIndex, string id,int li);
 pair<int,int> printEmployee(fstream &EPrimaryIndex, string id);
+void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID);
 
 
 int main()
 {
-
+     int listHeader=-1;
     fstream Employees,Department,EPrimaryIndex;
     Employees.open("Employees.txt", ios::out | ios::in | ios::app);
     Department.open("Department.txt",ios::in | ios::out| ios::app);
     EPrimaryIndex.open("EPrimaryIndex.txt",ios::in | ios::out| ios::app);
+    Employees<<"0000000000";
+    addEmployees(Employees,EPrimaryIndex,"2","i","m","s");
+    addEmployees(Employees,EPrimaryIndex,"30","monica","is","student");
+    addEmployees(Employees,EPrimaryIndex,"25","mirette","ai","studenttt");
+    deleteEmployee(Employees,EPrimaryIndex,"2");
+  // pair<int,int> p= printEmployee(EPrimaryIndex,"30");
+  // cout<<p.first<<" "<<p.second<<endl;
 
-    //addEmployees(Employees,EPrimaryIndex,"2","i","m","s");
-    //addEmployees(Employees,EPrimaryIndex,"30","monica","is","student");
-   pair<int,int> p= printEmployee(EPrimaryIndex,"30");
-   cout<<p.first<<" "<<p.second<<endl;
 
 
 
@@ -35,8 +38,8 @@ int main()
 void addEPrimaryIndex(fstream &EPrimaryIndex, string id,int li)
 {
     EPrimaryIndex.seekp(0,ios::end);
-    EPrimaryIndex<<totalRecordsSize<<'&'<<id<<endl;
-    totalRecordsSize+=li;
+    EPrimaryIndex<<li<<'&'<<id<<endl;
+    //totalRecordsSize+=li;
 
 }
 
@@ -90,15 +93,42 @@ pair<int,int> printEmployee(fstream &EPrimaryIndex,string id){
 void addEmployees(fstream &fileName,fstream &f2,string EID, string DID, string EName, string EPosition)
 {
     int recordLength = EID.size()+DID.size()+EName.size()+EPosition.size()+4;
+    int firstBO;
 
     if( fileName.is_open() )
     {
+        firstBO=fileName.tellp();
         fileName << setfill ('0') << setw (3);
         fileName << recordLength ;
-
         fileName<<EID<<"$"<<DID<<"$"<<EName<<"$"<<EPosition<<"$";
-    }
-    addEPrimaryIndex(f2,EID,recordLength);
-}
 
+    }
+    addEPrimaryIndex(f2,EID,firstBO);
+}
+void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID)
+{
+
+    pair<int,int>p=printEmployee(EPrimaryIndex,employeeID);
+    int deleteBO=p.first;
+    Employee.seekp(deleteBO,ios::beg);
+    string deletedRlength;
+    char temp;
+    for(int i=0;i<3;i++)
+    {
+        Employee<<temp;
+        deletedRlength+=temp;
+    }
+    Employee.seekg(0, ios::beg);
+    string previousHeader;
+    char temp2;
+    for(int i=0;i<3;i++)
+    {
+        Employee<<temp2;
+        previousHeader+=temp2;
+    }
+    Employee<<'*'<<deletedRlength<<'|'<<previousHeader;
+    Employee.seekp(0,ios::beg);
+    Employee << setfill ('0') << setw (10);
+    Employee << deleteBO;
+}
 

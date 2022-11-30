@@ -24,3 +24,11 @@
 
 1669831783 d:\fcai\third level #1\files\file-management\ass1_file\list.h
 
+1669852179 source:c:\fcai year 3 2022-2023\github\file-management\ass1_file\main.cpp
+	<iostream>
+	<fstream>
+	<iomanip>
+	<vector>
+	<string>
+	<bits/stdc++.h>
+

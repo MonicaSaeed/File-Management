@@ -9,17 +9,17 @@ using namespace std;
 
 }*/
 
-void addEmployees(string fileName,string EID, string DID, string EName, string EPosition)
+void addEmployees(fstream &fileName,string EID, string DID, string EName, string EPosition)
 {
-    fstream f(fileName.c_str(),ios::app); //opens file
+    //fstream f(fileName.c_str(),ios::app); //opens file
     int recordLength = EID.size()+DID.size()+EName.size()+EPosition.size()+4;
-    if( f.is_open() )
+    if( fileName.is_open() )
     {
         cout << setfill ('0') << setw (3);
         cout << recordLength << endl;
 
-        f << setfill ('0') << setw (3);
-        f << recordLength ;
+        fileName << setfill ('0') << setw (3);
+        fileName << recordLength ;
 
 
         /*int temp=0,temp2;
@@ -54,7 +54,7 @@ void addEmployees(string fileName,string EID, string DID, string EName, string E
         {
             f<<indicator[i];
         }*/
-        f<<EID<<"$"<<DID<<"$"<<EName<<"$"<<EPosition<<"$";
+        fileName<<EID<<"$"<<DID<<"$"<<EName<<"$"<<EPosition<<"$";
     }
 }
 
@@ -66,8 +66,8 @@ int main()
     Employees.open("Employees.txt", ios::out | ios::in | ios::app);
     Department.open("Department",ios::in | ios::out| ios::app);
 
-    addEmployees("Employees.txt","2","i","m","s");
-    addEmployees("Employees.txt","30","monica","is","student");
+    addEmployees(Employees,"2","i","m","s");
+    addEmployees(Employees,"30","monica","is","student");
 
 
 

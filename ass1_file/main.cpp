@@ -22,10 +22,11 @@ int main()
     Department.open("Department.txt",ios::in | ios::out| ios::app);
     EPrimaryIndex.open("EPrimaryIndex.txt",ios::in | ios::out| ios::app);
     Employees<<"00000000-1";
-//    addEmployees(Employees,EPrimaryIndex,"2","i","m","s");
-//    addEmployees(Employees,EPrimaryIndex,"30","monica","is","student");
-//    addEmployees(Employees,EPrimaryIndex,"25","mirette","ai","studenttt");
-    deleteEmployee(Employees,EPrimaryIndex,"2");
+    addEmployees(Employees,EPrimaryIndex,"2","i","m","s");
+    addEmployees(Employees,EPrimaryIndex,"30","monica","is","student");
+    addEmployees(Employees,EPrimaryIndex,"25","mirette","ai","studenttt");
+    //deleteEmployee(Employees,EPrimaryIndex,"2");
+    deleteEmployee(Employees,EPrimaryIndex,"30");
   // pair<int,int> p= printEmployee(EPrimaryIndex,"30");
   // cout<<p.first<<" "<<p.second<<endl;
 
@@ -146,7 +147,7 @@ void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID)
         cout<<Employee.tellp()<<endl;
         if(intPH==0){intPH=-1;}
         cout<<'*'<<intDRL<<'|'<<intPH<<endl;
-        Employee<<'*'<<intDRL<<'|'<<intPH;
+        Employee<<'*'<<intDRL+3<<'|'<<intPH; //+3 byte for byte offset(000)
         Employee.seekp(0,ios::beg);
         Employee << setfill ('0') << setw (10);
         Employee << deleteBO;

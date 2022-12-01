@@ -21,10 +21,10 @@ int main()
     Employees.open("Employees.txt", ios::out | ios::in | ios::app);
     Department.open("Department.txt",ios::in | ios::out| ios::app);
     EPrimaryIndex.open("EPrimaryIndex.txt",ios::in | ios::out| ios::app);
-    Employees<<"0000000000";
-    addEmployees(Employees,EPrimaryIndex,"2","i","m","s");
-    addEmployees(Employees,EPrimaryIndex,"30","monica","is","student");
-    addEmployees(Employees,EPrimaryIndex,"25","mirette","ai","studenttt");
+    Employees<<"00000000-1";
+//    addEmployees(Employees,EPrimaryIndex,"2","i","m","s");
+//    addEmployees(Employees,EPrimaryIndex,"30","monica","is","student");
+//    addEmployees(Employees,EPrimaryIndex,"25","mirette","ai","studenttt");
     deleteEmployee(Employees,EPrimaryIndex,"2");
   // pair<int,int> p= printEmployee(EPrimaryIndex,"30");
   // cout<<p.first<<" "<<p.second<<endl;
@@ -92,43 +92,65 @@ pair<int,int> printEmployee(fstream &EPrimaryIndex,string id){
 
 void addEmployees(fstream &fileName,fstream &f2,string EID, string DID, string EName, string EPosition)
 {
-    int recordLength = EID.size()+DID.size()+EName.size()+EPosition.size()+4;
-    int firstBO;
+   // fileName.open("Employees.txt", ios::out | ios::in | ios::ate);
 
-    if( fileName.is_open() )
-    {
-        firstBO=fileName.tellp();
-        fileName << setfill ('0') << setw (3);
-        fileName << recordLength ;
-        fileName<<EID<<"$"<<DID<<"$"<<EName<<"$"<<EPosition<<"$";
+        int recordLength = EID.size()+DID.size()+EName.size()+EPosition.size()+4;
+        int firstBO;
 
-    }
-    addEPrimaryIndex(f2,EID,firstBO);
+        if( fileName.is_open() )
+        {
+            firstBO=fileName.tellp();
+            fileName << setfill ('0') << setw (3);
+            fileName << recordLength ;
+            fileName<<EID<<"$"<<DID<<"$"<<EName<<"$"<<EPosition<<"$";
+
+        }
+        addEPrimaryIndex(f2,EID,firstBO);
+        //fileName.close();
 }
 void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID)
 {
+    Employee.close();
+    Employee.open("Employees.txt", ios::in | ios::out);
+    if(Employee.is_open())
+    {
+        pair<int,int>p=printEmployee(EPrimaryIndex,employeeID);
+        int deleteBO=p.first;
+        Employee.seekg(deleteBO,ios::beg);
+        cout<<Employee.tellg()<<endl;
+        string deletedRlength;
+        char temp;
+        for(int i=0;i<3;i++)
+        {
+            Employee>>temp;
+            deletedRlength+=temp;
+        }
+        Employee.seekg(0, ios::beg);
+        string previousHeader;
+        char temp2;
+        for(int i=0;i<10;i++)
+        {
+            Employee>>temp2;
+            previousHeader+=temp2;
+        }
+        //Employee.close();
+        //Employee.open("Employees.txt",ios::in);
+        Employee.seekp(deleteBO);
 
-    pair<int,int>p=printEmployee(EPrimaryIndex,employeeID);
-    int deleteBO=p.first;
-    Employee.seekp(deleteBO,ios::beg);
-    string deletedRlength;
-    char temp;
-    for(int i=0;i<3;i++)
-    {
-        Employee<<temp;
-        deletedRlength+=temp;
+        stringstream transDRL(deletedRlength), transPH(previousHeader);
+        int intDRL=0 ;
+        int intPH=0;
+        transDRL>>intDRL ;
+        transPH>>intPH;
+
+        cout<<Employee.tellp()<<endl;
+        if(intPH==0){intPH=-1;}
+        cout<<'*'<<intDRL<<'|'<<intPH<<endl;
+        Employee<<'*'<<intDRL<<'|'<<intPH;
+        Employee.seekp(0,ios::beg);
+        Employee << setfill ('0') << setw (10);
+        Employee << deleteBO;
+        Employee.close();
     }
-    Employee.seekg(0, ios::beg);
-    string previousHeader;
-    char temp2;
-    for(int i=0;i<3;i++)
-    {
-        Employee<<temp2;
-        previousHeader+=temp2;
-    }
-    Employee<<'*'<<deletedRlength<<'|'<<previousHeader;
-    Employee.seekp(0,ios::beg);
-    Employee << setfill ('0') << setw (10);
-    Employee << deleteBO;
 }
 

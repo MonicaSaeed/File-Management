@@ -16,7 +16,7 @@ void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID)
 
 int main()
 {
-     int listHeader=-1;
+    int listHeader=-1;
     fstream Employees,Department,EPrimaryIndex;
     Employees.open("Employees.txt", ios::out | ios::in | ios::app);
     Department.open("Department.txt",ios::in | ios::out| ios::app);
@@ -95,19 +95,51 @@ void addEmployees(fstream &fileName,fstream &f2,string EID, string DID, string E
 {
    // fileName.open("Employees.txt", ios::out | ios::in | ios::ate);
 
-        int recordLength = EID.size()+DID.size()+EName.size()+EPosition.size()+4;
-        int firstBO;
-
-        if( fileName.is_open() )
-        {
-            firstBO=fileName.tellp();
-            fileName << setfill ('0') << setw (3);
-            fileName << recordLength ;
-            fileName<<EID<<"$"<<DID<<"$"<<EName<<"$"<<EPosition<<"$";
-
+    int recordLength = EID.size()+DID.size()+EName.size()+EPosition.size()+4;
+    int firstBO;
+    fileName.seekg(0,ios::beg);
+    string h;
+    char temp;
+    for(int i=0;i<10;i++)
+    {
+        fileName>>temp;
+        h+=temp;
+    }
+    if(h=="00000000-1"){
+        fileName.seekp(0,ios::end);
+        firstBO=fileName.tellp();
+        fileName << setfill ('0') << setw (3);
+        fileName << recordLength ;
+        fileName<<EID<<"$"<<DID<<"$"<<EName<<"$"<<EPosition<<"$";
+    }
+    else{
+`       int findDeletRecord = stoi(h);
+        while(findDeletRecord!=-1 || recordLength < sizeDeletedRecod){
+            fileName.seekg(ios::beg,findDeletRecord+1); //+1 34an el *
+            string sizeDeletedRecod;
+            char temp;
+            fileName>>temp;
+            while(temp!='|'){
+                sizeDeletedRecod+=temp;
+                fileName>>temp;
+            }
+            SDR=(int)sizeDeletedRecod
         }
-        addEPrimaryIndex(f2,EID,firstBO);
-        //fileName.close();
+
+    }
+    addEPrimaryIndex(f2,EID,firstBO);
+
+/*
+    if( fileName.is_open() )
+    {
+        firstBO=fileName.tellp();
+        fileName << setfill ('0') << setw (3);
+        fileName << recordLength ;
+        fileName<<EID<<"$"<<DID<<"$"<<EName<<"$"<<EPosition<<"$";
+
+    }
+
+    //fileName.close();*/
 }
 void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID)
 {

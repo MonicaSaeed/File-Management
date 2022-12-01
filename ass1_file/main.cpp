@@ -31,8 +31,6 @@ int main()
   // cout<<p.first<<" "<<p.second<<endl;
 
 
-
-
     return 0;
 }
 
@@ -113,9 +111,24 @@ void addEmployees(fstream &fileName,fstream &f2,string EID, string DID, string E
         fileName<<EID<<"$"<<DID<<"$"<<EName<<"$"<<EPosition<<"$";
     }
     else{
-`       int findDeletRecord = stoi(h);
-        while(findDeletRecord!=-1 || recordLength < sizeDeletedRecod){
-            fileName.seekg(ios::beg,findDeletRecord+1); //+1 34an el *
+        int findDeletRecord = stoi(h);
+        fileName.seekg(findDeletRecord+1,ios::beg);
+        char tmp;
+        string SDR;
+        fileName>>tmp;
+        while(tmp!='|'){
+            SDR+=tmp;
+            fileName>>tmp;
+        }
+        int sizeDeletedRecod = stoi(SDR);
+        while(findDeletRecord!=-1) /////////////////////////////////////////////////////aaaaaaaaaaaaaaaaaaaaaaaaah
+        {
+            if(recordLength < sizeDeletedRecod){
+                fileName.seekp(findDeletRecord,ios::beg);
+                fileName << setfill ('0') << setw (3);
+                fileName << recordLength ;
+                fileName<<EID<<"$"<<DID<<"$"<<EName<<"$"<<EPosition<<"$";
+            }
             string sizeDeletedRecod;
             char temp;
             fileName>>temp;
@@ -127,7 +140,7 @@ void addEmployees(fstream &fileName,fstream &f2,string EID, string DID, string E
         }
 
     }
-    addEPrimaryIndex(f2,EID,firstBO);
+
 
 /*
     if( fileName.is_open() )
@@ -140,6 +153,7 @@ void addEmployees(fstream &fileName,fstream &f2,string EID, string DID, string E
     }
 
     //fileName.close();*/
+    addEPrimaryIndex(f2,EID,firstBO);
 }
 void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID)
 {
@@ -178,8 +192,8 @@ void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID)
 
         cout<<Employee.tellp()<<endl;
         if(intPH==0){intPH=-1;}
-        cout<<'*'<<intDRL<<'|'<<intPH<<endl;
-        Employee<<'*'<<intDRL+3<<'|'<<intPH; //+3 byte for byte offset(000)
+        cout<<'*'<<intDRL<<'|'<<intPH<<'|'<<endl;
+        Employee<<'*'<<intDRL+3<<'|'<<intPH<<'|'; //+3 byte for byte offset(000)
         Employee.seekp(0,ios::beg);
         Employee << setfill ('0') << setw (10);
         Employee << deleteBO;

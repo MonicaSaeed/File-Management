@@ -12,18 +12,20 @@ int totalRecordsSize=0;
 void addEPrimaryIndex(fstream &EPrimaryIndex, string id,int li);
 int findEmployeeWithID(fstream &EPrimaryIndex, string id);
 void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID);
-void addESecondaryIndex(fstream &ESecondaryIndex,fstream &ESecondaryData, string depId,string id);
+void SecondaryIndex(fstream &ESecondaryIndex,fstream &ESecondaryData, string depId,string id);
 vector <pair<string,int>>v(0);
 void sortPrimaryIndex(fstream &EPrimaryIndex);
 void deletePrimaryIndex(fstream &EPrimaryIndex,string id);
-vector <pair<string,int>>EmpSecondaryIndex(0);
+vector <pair<string,int>>EmpSecondaryIndex(0); //DID , BO
+vector <pair<int,pair<string,int>> >IDList(0); //BOfile, EID, pointer to second EID
 void sortSecondaryIndex(fstream& ESecondaryIndex);
+void printEmployee(fstream &EPrimaryIndex,fstream &Employees,string id);
 
 
 int main()
 {
     int listHeader=-1;
-    fstream Employees,Department,EPrimaryIndex,ESecondaryIndex;
+    fstream Employees,Department,EPrimaryIndex,ESecondaryIndex,ESecondaryData;
     Employees.open("Employees.txt", ios::out | ios::in | ios::app);
     Department.open("Department.txt",ios::in | ios::out| ios::app);
     EPrimaryIndex.open("EPrimaryIndex.txt",ios::in | ios::out| ios::app);
@@ -50,10 +52,37 @@ void addEPrimaryIndex(fstream &EPrimaryIndex, string id,int li)
     //totalRecordsSize+=li;
 
 }
-void addESecondaryIndex(fstream &ESecondaryIndex,fstream &ESecondaryData, string depId,string id)
+void SecondaryIndex(fstream &ESecondaryIndex,fstream &ESecondaryData, string depId,string id)
 {
-    ESecondaryIndex.seekp(0,ios::end);
-    ESecondaryIndex<<depId<<'&'<<id<<endl;
+    bool findDepID = false;
+    int position=0;
+    if(!EmpSecondaryIndex.empty()){
+        for(int i=0;i<EmpSecondaryIndex.size();i++){
+            if(EmpSecondaryIndex[i].first==depId)
+            {
+                findDepID == true;
+                position=i;
+                break;
+            }
+        }
+    }
+    int IDlistBO= IDList.size()+1;
+    if(findDepID==false)
+    {
+        pair<string,int>p(depId,IDlistBO);
+        EmpSecondaryIndex.push_back(p);
+        pair<string,int>p2(id,-1);
+        pair<int,pair<string,int>> p3(IDlistBO,p2);
+        IDList.push_back(p3);
+    }
+    else
+    {
+        int temp= EmpSecondaryIndex[position].second;
+        EmpSecondaryIndex[position].second=IDlistBO;
+        pair<string,int>p2(id,temp);
+        pair<int,pair<string,int>> p3(IDlistBO,p2);
+        IDList.push_back(p3);
+    }
 }
 
 void sortPrimaryIndex(fstream &EPrimaryIndex){
@@ -221,7 +250,7 @@ void addEmployees(fstream &fileName,fstream &f2,fstream &f3, string EID, string 
     }
 
     addEPrimaryIndex(f2,EID,firstBO);
-    addESecondaryIndex(f3,DID,EID);
+    //addESecondaryIndex(f3,DID,EID);
     }
 }
 void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID)
@@ -274,20 +303,42 @@ void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID)
     //Employee.open("Employee.txt", ios::in |ios::out|ios::app);
 }
 
-void sortSecondaryIndex(fstream& ESecondaryIndex)
+void writeSecondaryIndex(fstream& ESecondaryIndex,fstream &ESecondaryData)
 {
-    ESecondaryIndex.seekg(0,ios::beg);
-
-    while(!ESecondaryIndex.eof())
+    sort(EmpSecondaryIndex.begin(),v.end());
+    for(int i=0;i<EmpSecondaryIndex.size();i++)
     {
-        string DID,SID;
-        getline(ESecondaryIndex,DID,'&');
-        getline(ESecondaryIndex,SID);
-        if(DID=="" || SID=="")break;
-        pair<string,string> p(DID,DID);
-        EmpSecondaryIndex.push_back(p);
+        ESecondaryIndex<<EmpSecondaryIndex[i].first<<'|'<<EmpSecondaryIndex[i].second<<endl;
+
+    }
+    for(int i=0;i<IDList.size();i++)
+    {
+        //vector <pair<int,pair<string,int>> >IDList(0); //BOfile, EID, pointer to second EID
+        pair<string,int> p=IDList[i].second;
+        ESecondaryData<<IDList[i].first<<'|'<<p.first<<'|'<<p.second<<endl;
+    }
+}
+
+void printEmployee(fstream &EPrimaryIndex,fstream &Employees,string id)
+{
+    int pos=findEmployeeWithID(EPrimaryIndex,id);
+    Employees.seekg(0,ios::beg);
+    char temp;
+    string Bo;
+    for(int i=0;i<3;i++){
+        Employees>>temp;
+        Bo+=temp;
     }
 
-    sort(v.begin(),v.end());
-
+    int intBO=stoi(Bo);
+    for(int i=0;i<intBO;i++){
+        Employees>>temp;
+        if(temp!='&'){
+            cout<<temp;
+        }
+        else{
+            cout<<" ";
+        }
+    }
+    cout<<endl;
 }

@@ -539,15 +539,144 @@ void printEmployeeDepID(fstream &EPrimaryIndex, fstream &ESecondaryData, fstream
 }
 void addDepartement(fstream &Department, fstream &DPrimaryIndex,fstream &DSecondaryIndex,fstream &DSecondaryData,string DepID, string DepName, string DepManager)
 {
-    Department.open("Department.txt",ios::in |ios::out);
+    Department.open("Department.txt", ios::out | ios::in );
+
     int depRL=DepID.size()+DepName.size()+DepManager.size()+3;
-    ///int depFirstBo=0;
-    Department.seekp(0, ios::end);
-   /// depFirstBo = Department.tellp();
-    Department << setfill('0') << setw(3);
-    Department << depRL;
-    Department << DepID << "$" << DepName << "$" << DepManager << "$";
-    Department.close();
+       int firstBO;
+    string h;char temp;
+    int nextAddressInLL=0 , currentAddressInLL=0, currenSize=0;
+    char tmp;string SDR;
+    bool done= false;
+    int nextAddressSize=0 ;
+    int nextLLByteOffset = 0;
+    char tmp2;string nextBO;
+
+    Department.seekg(0, ios::beg);
+    for(int i=0; i<10; i++)
+    {
+        Department >> temp;
+        h+=temp;
+    }
+
+    stringstream transH(h);
+    transH >> nextAddressInLL;
+
+    if(nextAddressInLL == 0)
+    {
+        nextAddressInLL=-1;
+    }
+
+    if(nextAddressInLL != -1)
+    {
+        while(nextAddressInLL != -1)
+        {
+            cout<<"insideeee while"<<endl;
+
+            //////////////////////////////////////////////////////////////////
+            Department.seekg(nextAddressInLL + 1, ios::beg);///
+            Department >> tmp;
+            while(tmp!='|')
+            {
+                SDR+=tmp;/////size deleted record
+                Department >> tmp;
+            }
+            stringstream transSDR(SDR);
+            transSDR >> nextAddressSize;
+            //int nextAddressSize = intSDR);
+            ///////////////////////////////////////////////////////////
+
+
+            if(depRL <= nextAddressSize)
+            {
+                cout<<"inideee iffff"<<endl;
+                Department.seekg(nextAddressInLL + 1+SDR.size(), ios::beg);///
+                cout<<"tellg()"<<Department.tellg()<<endl;
+                cout<<Department.get()<<endl;
+                Department >> tmp2;
+                while(tmp2!='|')
+                {
+                    nextBO+=tmp2;
+                    Department >> tmp2;
+                }
+                cout<<"nextbo"<<nextBO<<endl;
+                stringstream transnextBO(nextBO);
+                transnextBO >> nextLLByteOffset;
+                cout<<"--------"<<nextLLByteOffset<<endl;
+                //nextAddressInLL=nextLLByteOffset;
+
+                int diff= nextAddressSize - depRL - 3;
+                string dif;
+                Department.seekp(nextAddressInLL, ios::beg);
+                Department << setfill ('0') << setw (3);
+                for(int i=0;i<diff;i++)
+                {
+                    dif+='-';
+                }
+                firstBO = Department.tellp();
+                Department << depRL+dif.size() ;
+                Department << DepID << "$" << DepName << "$" << DepManager << "$";
+
+                cout<<nextAddressInLL<<"--------------------"<<nextLLByteOffset<<endl;
+
+                nextAddressInLL=nextLLByteOffset;
+
+                if(nextAddressInLL==0){nextAddressInLL=-1;}
+
+                cout<<currentAddressInLL<<endl;
+                if(currentAddressInLL==0)
+                {
+                    Department.seekp(0, ios::beg);
+                    Department << setfill ('0') << setw (10);
+                    Department << nextAddressInLL;
+                }
+                else {
+                    Department.seekp(currentAddressInLL,ios::beg);
+                    Department<<'*'<<currenSize<<'|'<<nextAddressInLL<<'|';
+                }
+                Department.close();
+                addDPrimaryIndex(DPrimaryIndex, DepID, firstBO);
+                SecondaryIndexDep(DSecondaryIndex,DSecondaryData,DepID,DepName);
+
+                done=true;
+                nextAddressInLL=-1;
+                break;
+            }
+
+            else
+            {
+                currentAddressInLL=nextAddressInLL;
+                currenSize=nextAddressSize;
+                nextAddressInLL=nextLLByteOffset;
+                cout<<"second"<<endl;
+
+                Department.seekg(1, ios::cur);
+                cout << Department.get() << endl;
+                char tmp2;
+                string nextBO;
+                Department >> tmp2;
+                while(tmp!='|')
+                {
+                    nextBO+=tmp2;
+                    Department >> tmp2;
+                }
+                stringstream transnextBO(nextBO);
+                int findDeletRecord = 0;
+                transnextBO>>findDeletRecord;
+
+            }
+        }
+    }
+    cout<<"third"<<endl;
+    if(done== false) {
+        Department.seekp(0, ios::end);
+        firstBO = Department.tellp();
+        Department << setfill('0') << setw(3);
+        Department << depRL;
+        Department << DepID << "$" << DepName << "$" << DepManager << "$";
+        Department.close();
+        addDPrimaryIndex(DPrimaryIndex, DepID, firstBO);
+        SecondaryIndexDep(DSecondaryIndex,DSecondaryData,DepID,DepName);
+    }
 }
 int searchDepWithDepName(string DName)
 {

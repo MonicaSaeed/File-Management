@@ -274,7 +274,7 @@ int main()
                 cin>>wherecon;
                 cout<<" = ";cin>>val;
                 if( wherecon==1){
-                    Employee e = getEmployee(Employees,EPrimaryIndex,val);
+                    Employee e = getEmployee(EPrimaryIndex,Employees,val);
                     if(selectQ==1){
                         cout<<e.getEID()<<endl;
                     }else if(selectQ==2){
@@ -318,55 +318,48 @@ int main()
                 }
 
             }
-            else if(table==2){
-                /*cout<< "select 1 for department ID ,2 department name, 3 department manager,4 all ";
+            else if(table==2)
+            {
+                cout<< "select 1 for department ID ,2 department name, 3 department manager,4 all ";
                 cin>>selectQ;
                 cout<<"where 1 for search by department id , 2 for search by department name ";
                 cin>>wherecon;
                 cout<<" = ";cin>>val;
-                if( wherecon==1){
-                    Department d = getDepartment(Employees,EPrimaryIndex,val);
+                if( wherecon==1)
+                {
+                    Department d = getDepartment(DPrimaryIndex,DepartmentFile,val);
                     if(selectQ==1){
-                        cout<<e.getEID()<<endl;
+                        cout<<d.getDID()<<endl;
                     }else if(selectQ==2){
-                        cout<<e.getDID()<<endl;
+                        cout<<d.getDName()<<endl;
                     }else if(selectQ==3){
-                        cout<<e.getEName()<<endl;
+                        cout<<d.getDManager()<<endl;
                     }else if(selectQ==4){
-                        cout<<e.getEPosition()<<endl;
-                    }else if(selectQ==5){
-                        cout<<e.getEID()<<" "<<e.getDID()<<" "<<e.getEName()<<" "<<e.getEPosition()<<endl;
+                        cout<<d.getDID()<<" "<<d.getDName()<<" "<<d.getDManager()<<endl;
                     }
                 }
                 else{
-                    vector<Employee> emp = getEmployeeWithDepID(EPrimaryIndex,ESecondaryData,ESecondaryIndex,Employees,DepId);
+                    vector<Department> dep = getDepByName(DPrimaryIndex,DSecondaryData,DSecondaryIndex,DepartmentFile,val);
                     if(selectQ==1){
-                        for(int i=;i<emp.size();i++){
-                            cout<<i<<"- "<<emp[i].getEID()<<endl;
+                        for(int i=0;i<dep.size();i++){
+                            cout<<i<<"- "<<dep[i].getDID()<<endl;
                         }
-
                     }
                     else if(selectQ==2){
-                        for(int i=;i<emp.size();i++){
-                            cout<<i<<"- "<<emp[i].getDID()<<endl;
+                        for(int i=0;i<dep.size();i++){
+                            cout<<i<<"- "<<dep[i].getDName()<<endl;
                         }
                     }
                     else if(selectQ==3){
-                        for(int i=;i<emp.size();i++){
-                            cout<<i<<"- "<<emp[i].getEName()<<endl;
+                        for(int i=0;i<dep.size();i++){
+                            cout<<i<<"- "<<dep[i].getDManager()<<endl;
+                        }
+                    }else if(selectQ==4){
+                        for(int i=0;i<dep.size();i++){
+                            cout<<i<<"- "<<dep[i].getDID()<<" "<<dep[i].getDName()<<" "<<dep[i].getDManager()<<endl;
                         }
                     }
-                    else if(selectQ==4){
-                        for(int i=;i<emp.size();i++){
-                            cout<<i<<"- "<<emp[i].getEPosition()<<endl;
-                        }
-                    }
-                    else if(selectQ==5){
-                        for(int i=;i<emp.size();i++){
-                            cout<<i<<"- "<<emp.getEID()<<" "<<emp.getDID()<<" "<<emp.getEName()<<" "<<emp.getEPosition()<<endl;
-                        }
-                    }
-                }*/
+                }
 
             }else{
                 cout<<"wrong"<<endl;
@@ -1207,5 +1200,4 @@ vector<Department> getDepByName(fstream &DPrimaryIndex, fstream &DSecondaryData,
         searchSBO=p.second;
     } while (p.second!=-1);
     return dep;
-
 }

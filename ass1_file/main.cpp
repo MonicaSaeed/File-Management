@@ -7,74 +7,65 @@
 
 using namespace std;
 
-void addEmployees(fstream &fileName,fstream &f2,fstream &f3,string EID, string DID, string EName, string EPosition);
+void sortPrimaryIndex(fstream &EPrimaryIndex);
+void addEmployees(fstream &Employees, fstream &EPrimaryIndex, fstream &ESecondaryIndex, fstream &ESecondaryData, string EID, string DID, string EName, string EPosition);
 int totalRecordsSize=0;
 void addEPrimaryIndex(fstream &EPrimaryIndex, string id,int li);
 int findEmployeeWithID(fstream &EPrimaryIndex, string id);
 void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID);
 void SecondaryIndex(fstream &ESecondaryIndex,fstream &ESecondaryData, string depId,string id);
 vector <pair<string,int>>v(0);
-void sortPrimaryIndex(fstream &EPrimaryIndex);
 void deletePrimaryIndex(fstream &EPrimaryIndex,string id);
 vector <pair<string,int>>EmpSecondaryIndex(0); //DID , BO
 vector <pair<int,pair<string,int>> >IDList(0); //BOfile, EID, pointer to second EID
-void sortSecondaryIndex(fstream& ESecondaryIndex);
 void printEmployee(fstream &EPrimaryIndex,fstream &Employees,string id);
 void printEmployeeDepID(fstream &EPrimaryIndex, fstream &ESecondaryData, fstream &ESecondaryIndex, fstream &Employees,string DId);
-
+void writeSecondaryIndex(fstream& ESecondaryIndex,fstream &ESecondaryData);
 
 int main()
 {
     int listHeader=-1;
     fstream Employees,Department,EPrimaryIndex,ESecondaryIndex,ESecondaryData;
     Employees.open("Employees.txt", ios::out | ios::in | ios::app);
-    Department.open("Department.txt",ios::in | ios::out| ios::app);
-    EPrimaryIndex.open("EPrimaryIndex.txt",ios::in | ios::out| ios::app);
-    ESecondaryIndex.open("ESecondaryIndex.txt", ios::in | ios::out|ios::app);
-    ESecondaryData.open("ESecondaryData.txt",ios::in | ios::out | ios::app);
     Employees<<"00000000-1";
-   // addEmployees(Employees,EPrimaryIndex,ESecondaryIndex,"2","i","m","s");
-   // addEmployees(Employees,EPrimaryIndex,ESecondaryIndex,"30","is","monica","student");
+    Employees.close();
+    // addEmployees(Employees,EPrimaryIndex,ESecondaryIndex,"2","i","m","s");
+    // addEmployees(Employees,EPrimaryIndex,ESecondaryIndex,"30","is","monica","student");
     //addEmployees(Employees,EPrimaryIndex,"25","mirette","ai","studenttt");
-   // deleteEmployee(Employees,EPrimaryIndex,"2");
-   // addEmployees(Employees,EPrimaryIndex,ESecondaryIndex,"25","ai","mirette","studenttt");
+    // deleteEmployee(Employees,EPrimaryIndex,"2");
+    // addEmployees(Employees,EPrimaryIndex,ESecondaryIndex,"25","ai","mirette","studenttt");
     //deleteEmployee(Employees,EPrimaryIndex,"30");
     // pair<int,int> p= printEmployee(EPrimaryIndex,"30");
     // cout<<p.first<<" "<<p.second<<endl;
-    int num;
-    string EmpId,DepID,EmpName,EmpPosition;
-    cin>>num;
-    while(num=1)
-    {
-        cout<<"choose operation: "<<endl;
+    //addEmployees(Employees,EPrimaryIndex,ESecondaryIndex,"sjnkc","acs","EmpName","EmpPosition");
 
+
+    int num;
+    do{
+        cout<<"choose operation: "<<endl;
+        cin>>num;
         if(num==1)
         {
+            string EmpId,DepID,EmpName,EmpPosition;
             cout<<"enter employee's ID, departement ID ,Employees's name, and position"<<endl;
             cin>>EmpId>>DepID>>EmpName>>EmpPosition;
-            addEmployees(Employees,EPrimaryIndex,ESecondaryIndex,EmpId,DepID,EmpName,EmpPosition);
+            addEmployees(Employees,EPrimaryIndex,ESecondaryIndex,ESecondaryData,EmpId,DepID,EmpName,EmpPosition);
         }
-      /*  else if(num==2)
-        {
+        /*  else if(num==2)
+          {
 
-        }*/
+          }*/
 
-    }
+    }while(num != 0);
 
-    /*cout<<"Enter a number
-    switch(num)
-    {
-        case 1;
-        addEmployees()
-    }*/
     return 0;
 }
 void addEPrimaryIndex(fstream &EPrimaryIndex, string id,int li){
+    EPrimaryIndex.open("EPrimaryIndex.txt",ios::in | ios::out| ios::app);
     EPrimaryIndex.seekp(0,ios::end);
     EPrimaryIndex<<li<<'&'<<id<<endl;
     sortPrimaryIndex(EPrimaryIndex);
-    //totalRecordsSize+=li;
-
+    EPrimaryIndex.close();
 }
 void SecondaryIndex(fstream &ESecondaryIndex,fstream &ESecondaryData, string depId,string id){
     bool findDepID = false;
@@ -83,7 +74,7 @@ void SecondaryIndex(fstream &ESecondaryIndex,fstream &ESecondaryData, string dep
         for(int i=0;i<EmpSecondaryIndex.size();i++){
             if(EmpSecondaryIndex[i].first==depId)
             {
-                findDepID == true;
+                findDepID = true;
                 position=i;
                 break;
             }
@@ -106,9 +97,17 @@ void SecondaryIndex(fstream &ESecondaryIndex,fstream &ESecondaryData, string dep
         pair<int,pair<string,int>> p3(IDlistBO,p2);
         IDList.push_back(p3);
     }
+    //create secondary index file and secondary data file if not exist
+    ESecondaryIndex.open("ESecondaryIndex.txt",ios::in | ios::out| ios::app);
+    ESecondaryData.open("ESecondaryData.txt",ios::in | ios::out| ios::app);
+    ESecondaryIndex.close();
+    ESecondaryData.close();
+    //write the secondary index and secondary data
+    writeSecondaryIndex(ESecondaryIndex,ESecondaryData);
 }
 
 void sortPrimaryIndex(fstream &EPrimaryIndex){
+    EPrimaryIndex.open("EPrimaryIndex.txt",ios::in | ios::out| ios::app);
     EPrimaryIndex.seekg(0,ios::beg);
 
     while(!EPrimaryIndex.eof())
@@ -116,7 +115,7 @@ void sortPrimaryIndex(fstream &EPrimaryIndex){
         string Sbo,SID;
         getline(EPrimaryIndex,Sbo,'&');
         getline(EPrimaryIndex,SID);
-        if(Sbo=="" || SID=="")break;
+        if(Sbo.empty() || SID.empty())break;
         pair<string,int> p(SID,stoi(Sbo));
         v.push_back(p);
     }
@@ -177,21 +176,21 @@ int findEmployeeWithID(fstream &EPrimaryIndex,string id)
 
 }
 
-void addEmployees(fstream &fileName,fstream &f2,fstream &f3, string EID, string DID, string EName, string EPosition)
+void addEmployees(fstream &Employees, fstream &EPrimaryIndex, fstream &ESecondaryIndex, fstream &ESecondaryData, string EID, string DID, string EName, string EPosition)
 {
-    //fileName.open("Employees.txt", ios::out | ios::in | ios::ate);
+    Employees.open("Employees.txt", ios::out | ios::in );
 
     int recordLength = EID.size()+DID.size()+EName.size()+EPosition.size()+4;
     int firstBO;
-    fileName.seekg(0,ios::beg);
+    Employees.seekg(0, ios::beg);
     string h;
     char temp;
     for(int i=0; i<10; i++)
     {
-        fileName>>temp;
+        Employees >> temp;
         h+=temp;
     }
-    cout<<h<<endl<<fileName.tellg()<<endl;
+    cout << h << endl << Employees.tellg() << endl;
     stringstream transH(h);
     int findDeletRecord=0 ;
     transH>>findDeletRecord;
@@ -207,15 +206,15 @@ void addEmployees(fstream &fileName,fstream &f2,fstream &f3, string EID, string 
         while(findDeletRecord!=-1) /////////////////////////////////////////////////////aaaaaaaaaaaaaaaaaaaaaaaaah
         {
             cout<<"firsttt"<<endl;
-            fileName.seekg(findDeletRecord+1,ios::beg);
-            cout<<"\\\\\\\\\\\\\\"<<fileName.tellg()<<endl;
+            Employees.seekg(findDeletRecord + 1, ios::beg);
+            cout << "\\\\\\\\\\\\\\" << Employees.tellg() << endl;
             char tmp;
             string SDR;
-            fileName>>tmp;
+            Employees >> tmp;
             while(tmp!='|')
             {
                 SDR+=tmp;
-                fileName>>tmp;
+                Employees >> tmp;
             }
             stringstream transSDR(SDR);
             int sizeDeletedRecod=0 ;
@@ -228,13 +227,13 @@ void addEmployees(fstream &fileName,fstream &f2,fstream &f3, string EID, string 
             if(recordLength <= sizeDeletedRecod)
             {
                 cout<<"\\\\\\\\\\\\\\"<<recordLength<<endl;
-                //cout<<"\\\\\\\\\\\\\\"<<fileName.tellg()<<endl;
-                fileName.seekp(findDeletRecord,ios::beg);
-                fileName << setfill ('0') << setw (3);
-                fileName << recordLength ;
-                fileName<<EID<<"$"<<DID<<"$"<<EName<<"$"<<EPosition<<"$";
+                //cout<<"\\\\\\\\\\\\\\"<<Employees.tellg()<<endl;
+                Employees.seekp(findDeletRecord, ios::beg);
+                Employees << setfill ('0') << setw (3);
+                Employees << recordLength ;
+                Employees << EID << "$" << DID << "$" << EName << "$" << EPosition << "$";
                 findDeletRecord=-1;
-                addEPrimaryIndex(f2,EID,firstBO);
+                addEPrimaryIndex(EPrimaryIndex, EID, firstBO);
                 break;
             }
 
@@ -242,15 +241,15 @@ void addEmployees(fstream &fileName,fstream &f2,fstream &f3, string EID, string 
             {
                 cout<<"second"<<endl;
 
-                fileName.seekg(1,ios::cur);
-                cout<<fileName.get()<<endl;
+                Employees.seekg(1, ios::cur);
+                cout << Employees.get() << endl;
                 char tmp2;
                 string nextBO;
-                fileName>>tmp2;
+                Employees >> tmp2;
                 while(tmp!='|')
                 {
                     nextBO+=tmp2;
-                    fileName>>tmp2;
+                    Employees >> tmp2;
                 }
                 stringstream transnextBO(nextBO);
                 int findDeletRecord = 0;
@@ -261,18 +260,17 @@ void addEmployees(fstream &fileName,fstream &f2,fstream &f3, string EID, string 
     }
     cout<<"third"<<endl;
 
-    fileName.seekp(0,ios::end);
-    firstBO=fileName.tellp();
-    fileName << setfill ('0') << setw (3);
-    fileName << recordLength ;
-    fileName<<EID<<"$"<<DID<<"$"<<EName<<"$"<<EPosition<<"$";
-    //fileName.close();
-    addEPrimaryIndex(f2,EID,firstBO);
-
+    Employees.seekp(0, ios::end);
+    firstBO=Employees.tellp();
+    Employees << setfill ('0') << setw (3);
+    Employees << recordLength ;
+    Employees << EID << "$" << DID << "$" << EName << "$" << EPosition << "$";
+    Employees.close();
+    addEPrimaryIndex(EPrimaryIndex, EID, firstBO);
+    SecondaryIndex(ESecondaryIndex, ESecondaryData, DID, EID);
 }
 void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID)
 {
-    Employee.close();
     Employee.open("Employees.txt", ios::in | ios::out |ios::ate);
     if(Employee.is_open())
     {
@@ -322,18 +320,20 @@ void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID)
 
 void writeSecondaryIndex(fstream& ESecondaryIndex,fstream &ESecondaryData)
 {
-    sort(EmpSecondaryIndex.begin(),v.end());
-    for(int i=0;i<EmpSecondaryIndex.size();i++)
+    ESecondaryIndex.open("ESecondaryIndex.txt",ios::in | ios::out);
+    ESecondaryData.open("ESecondaryData.txt",ios::in | ios::out);
+    sort(EmpSecondaryIndex.begin(),EmpSecondaryIndex.end());
+    for(int i=0; i<EmpSecondaryIndex.size(); i++)
     {
         ESecondaryIndex<<EmpSecondaryIndex[i].first<<'|'<<EmpSecondaryIndex[i].second<<endl;
-
     }
-    for(int i=0;i<IDList.size();i++)
+    for(int i=0; i<IDList.size();i++)
     {
-        //vector <pair<int,pair<string,int>> >IDList(0); //BOfile, EID, pointer to second EID
         pair<string,int> p=IDList[i].second;
         ESecondaryData<<IDList[i].first<<'|'<<p.first<<'|'<<p.second<<endl;
     }
+    ESecondaryIndex.close();
+    ESecondaryData.close();
 }
 
 void printEmployee(fstream &EPrimaryIndex,fstream &Employees,string id)
@@ -366,8 +366,8 @@ void printEmployeeDepID(fstream &EPrimaryIndex, fstream &ESecondaryData, fstream
     {
         if(EmpSecondaryIndex[i].first==DId)
         {
-           searchSBO=EmpSecondaryIndex[i].second;
-           break;
+            searchSBO=EmpSecondaryIndex[i].second;
+            break;
         }
     }
     if(searchSBO==0){
@@ -378,7 +378,7 @@ void printEmployeeDepID(fstream &EPrimaryIndex, fstream &ESecondaryData, fstream
 
     for(int i=0; i<IDList.size();i++)
     {
-         pair<string,int>p=IDList[i].second;
+        pair<string,int>p=IDList[i].second;
         if(IDList[i].first==searchSBO)
         {
             printEmployee(EPrimaryIndex,Employees, p.first);

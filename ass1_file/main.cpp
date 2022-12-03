@@ -199,7 +199,7 @@ int main()
             cout<<"enter employee's ID"<<endl;
             string EmpId;
             cin>>EmpId;
-            Employee e = getEmployee(Employees,EPrimaryIndex,EmpId);
+            Employee e = getEmployee(EPrimaryIndex, Employees,EmpId);
             if(e.EID.empty())
             {
                 cout<<"Employee not found"<<endl;
@@ -770,7 +770,7 @@ Employee getEmployee(fstream &EPrimaryIndex,fstream &Employees,string id)
 }
 vector<Employee> getEmployeeWithDepID(fstream &EPrimaryIndex, fstream &ESecondaryData, fstream &ESecondaryIndex, fstream &Employees,string DId)
 {
-    int searchSBO = searchEmployeeWithID(DId);
+    int searchSBO = searchEmployeesWithDID(DId);
     vector<Employee> emp(0);
     if(searchSBO==-1){
         return emp;}

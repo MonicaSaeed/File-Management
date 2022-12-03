@@ -32,3 +32,11 @@
 	<string>
 	<bits/stdc++.h>
 
+1670034383 source:e:\projects\c++\file-management\ass1_file\main.cpp
+	<iostream>
+	<fstream>
+	<iomanip>
+	<vector>
+	<string>
+	<bits/stdc++.h>
+

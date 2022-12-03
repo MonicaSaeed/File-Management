@@ -6,12 +6,13 @@
 #include<bits/stdc++.h>
 
 using namespace std;
-
+void readPrimaryIndexToVector(fstream &EPrimaryIndex);
 void sortPrimaryIndex(fstream &EPrimaryIndex);
 void addEmployees(fstream &Employees, fstream &EPrimaryIndex, fstream &ESecondaryIndex, fstream &ESecondaryData, string EID, string DID, string EName, string EPosition);
 int totalRecordsSize=0;
 void addEPrimaryIndex(fstream &EPrimaryIndex, string id,int li);
-int findEmployeeWithID(fstream &EPrimaryIndex, string id);
+int findEmployeeWithID(string id);
+int findEmployeeWithDId(string DId);
 void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID);
 void SecondaryIndex(fstream &ESecondaryIndex,fstream &ESecondaryData, string depId,string id);
 vector <pair<string,int>>v(0);
@@ -51,10 +52,20 @@ int main()
             cin>>EmpId>>DepID>>EmpName>>EmpPosition;
             addEmployees(Employees,EPrimaryIndex,ESecondaryIndex,ESecondaryData,EmpId,DepID,EmpName,EmpPosition);
         }
-        /*  else if(num==2)
-          {
-
-          }*/
+        else if(num==2){
+            //load data from Primary Index file to vector v
+            readPrimaryIndexToVector(EPrimaryIndex);
+            cout<<"enter employee's ID"<<endl;
+            string EmpId;
+            cin>>EmpId;
+            printEmployee(Employees,EPrimaryIndex,EmpId);
+        }
+        else if (num == 3){
+            cout<<"enter Department ID"<<endl;
+            string DepId;
+            cin>>DepId;
+            printEmployeeDepID(EPrimaryIndex,ESecondaryData,ESecondaryIndex,Employees,DepId);
+        }
 
     }while(num != 0);
 
@@ -63,9 +74,9 @@ int main()
 void addEPrimaryIndex(fstream &EPrimaryIndex, string id,int li){
     EPrimaryIndex.open("EPrimaryIndex.txt",ios::in | ios::out| ios::app);
     EPrimaryIndex.seekp(0,ios::end);
-    EPrimaryIndex<<li<<'&'<<id<<endl;
-    sortPrimaryIndex(EPrimaryIndex);
+    EPrimaryIndex<<id<<'&'<<li<<endl;
     EPrimaryIndex.close();
+    sortPrimaryIndex(EPrimaryIndex);
 }
 void SecondaryIndex(fstream &ESecondaryIndex,fstream &ESecondaryData, string depId,string id){
     bool findDepID = false;
@@ -106,30 +117,31 @@ void SecondaryIndex(fstream &ESecondaryIndex,fstream &ESecondaryData, string dep
     writeSecondaryIndex(ESecondaryIndex,ESecondaryData);
 }
 
-void sortPrimaryIndex(fstream &EPrimaryIndex){
+void readPrimaryIndexToVector(fstream &EPrimaryIndex){
+    v.clear();
     EPrimaryIndex.open("EPrimaryIndex.txt",ios::in | ios::out| ios::app);
-    EPrimaryIndex.seekg(0,ios::beg);
-
     while(!EPrimaryIndex.eof())
     {
         string Sbo,SID;
-        getline(EPrimaryIndex,Sbo,'&');
-        getline(EPrimaryIndex,SID);
+        getline(EPrimaryIndex,SID,'&');
+        getline(EPrimaryIndex,Sbo);
         if(Sbo.empty() || SID.empty())break;
         pair<string,int> p(SID,stoi(Sbo));
         v.push_back(p);
     }
-    sort(v.begin(),v.end());
+
     EPrimaryIndex.close();
-    EPrimaryIndex.open("EPrimaryIndex.txt", ios::in | ios::out |ios::ate);
-    if(EPrimaryIndex.is_open())
+}
+
+void sortPrimaryIndex(fstream &EPrimaryIndex){
+    readPrimaryIndexToVector(EPrimaryIndex);
+    sort(v.begin(),v.end());
+    EPrimaryIndex.open("EPrimaryIndex.txt", ios::in | ios::out | ios::trunc);
+    for(int i=0;i<v.size();i++)
     {
-        EPrimaryIndex.seekp(0,ios::beg);
-        for(int i=0;i<v.size();i++)
-        {
-            EPrimaryIndex<<v[i].first<<'&'<<v[i].second<<endl;
-        }
+        EPrimaryIndex<<v[i].first<<'&'<<v[i].second<<endl;
     }
+    EPrimaryIndex.close();
 }
 
 void deletePrimaryIndex(fstream &EPrimaryIndex,string id){
@@ -145,8 +157,8 @@ void deletePrimaryIndex(fstream &EPrimaryIndex,string id){
     sortPrimaryIndex(EPrimaryIndex);
 
 }
-//first int is the byte offset in employee file and second int is the byte offset in primary key file
-int findEmployeeWithID(fstream &EPrimaryIndex,string id)
+
+int findEmployeeWithID(string id)
 {
     //binary search
     int start = 0;
@@ -160,6 +172,36 @@ int findEmployeeWithID(fstream &EPrimaryIndex,string id)
             break;
         }
         else if(v[mid].first<id)
+        {
+            start = mid+1;
+        }
+        else
+        {
+            end = mid-1;
+        }
+        mid = (start+end)/2;
+    }
+    if(start>end)
+    {
+        return -1;
+    }
+
+}
+
+int findEmployeeWithDId(string DId)
+{
+    //binary search
+    int start = 0;
+    int end = (int)EmpSecondaryIndex.size()-1;
+    int mid = (start+end)/2;
+    while(start<=end)
+    {
+        if(EmpSecondaryIndex[mid].first==DId)
+        {
+            return EmpSecondaryIndex[mid].second;
+            break;
+        }
+        else if(EmpSecondaryIndex[mid].first<DId)
         {
             start = mid+1;
         }
@@ -274,7 +316,7 @@ void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID)
     Employee.open("Employees.txt", ios::in | ios::out |ios::ate);
     if(Employee.is_open())
     {
-        int deleteBO=findEmployeeWithID(EPrimaryIndex,employeeID);
+        int deleteBO=findEmployeeWithID(employeeID);
         Employee.seekg(deleteBO,ios::beg);
         cout<<Employee.tellg()<<endl;
         string deletedRlength;
@@ -338,19 +380,24 @@ void writeSecondaryIndex(fstream& ESecondaryIndex,fstream &ESecondaryData)
 
 void printEmployee(fstream &EPrimaryIndex,fstream &Employees,string id)
 {
-    int pos=findEmployeeWithID(EPrimaryIndex,id);
-    Employees.seekg(0,ios::beg);
+    Employees.open("Employees.txt", ios::out | ios::in );
+    int pos=findEmployeeWithID(id);
+    if (pos == -1)
+    {
+        cout << "Employee not found" << endl;
+        return;
+    }
+    Employees.seekg(pos,ios::beg);
     char temp;
     string Bo;
     for(int i=0;i<3;i++){
         Employees>>temp;
         Bo+=temp;
     }
-
     int intBO=stoi(Bo);
     for(int i=0;i<intBO;i++){
         Employees>>temp;
-        if(temp!='&'){
+        if(temp!='$'){
             cout<<temp;
         }
         else{
@@ -358,30 +405,21 @@ void printEmployee(fstream &EPrimaryIndex,fstream &Employees,string id)
         }
     }
     cout<<endl;
+    Employees.close();
 }
 void printEmployeeDepID(fstream &EPrimaryIndex, fstream &ESecondaryData, fstream &ESecondaryIndex, fstream &Employees,string DId)
 {
-    int searchSBO=0;
-    for(int i=0;i<EmpSecondaryIndex.size();i++)
-    {
-        if(EmpSecondaryIndex[i].first==DId)
-        {
-            searchSBO=EmpSecondaryIndex[i].second;
-            break;
-        }
-    }
-    if(searchSBO==0){
+    int searchSBO = findEmployeeWithDId(DId);
+    if(searchSBO==-1){
         cout<<"departement not found";
         return;}
 
     string searchID;
 
-    for(int i=0; i<IDList.size();i++)
-    {
-        pair<string,int>p=IDList[i].second;
-        if(IDList[i].first==searchSBO)
-        {
-            printEmployee(EPrimaryIndex,Employees, p.first);
-        }
-    }
+    pair<string,int> p;
+    do {
+        p = IDList[searchSBO-1].second;
+        printEmployee(EPrimaryIndex,Employees,p.first);
+        searchSBO=p.second;
+    } while (p.second!=-1);
 }

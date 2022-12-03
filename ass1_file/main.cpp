@@ -1048,8 +1048,8 @@ void deleteDepPrimaryIndex(fstream &DPrimaryIndex,string DepId)
     s=vDepPI.size();
     cout<<vDepPI.size()<<"v size after"<<endl;
     //  sortPrimaryIndex(EPrimaryIndex);
-    DPrimaryIndex.open("EPrimaryIndex.txt", ios::in | ios::out | ios::trunc);
-    for(int i=0;i<v.size();i++)
+    DPrimaryIndex.open("DPrimaryIndex.txt", ios::in | ios::out | ios::trunc);
+    for(int i=0;i<vDepPI.size();i++)
     {
         DPrimaryIndex<<vDepPI[i].first<<'&'<<vDepPI[i].second<<endl;
     }

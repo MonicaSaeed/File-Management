@@ -230,8 +230,7 @@ void deletePrimaryIndex(fstream &EPrimaryIndex,string id){
 
 
 }
-int searchEmployeeWithID(string id)
-{
+int searchEmployeeWithID(string id){
     //binary search
     int start = 0;
     int end = (int)v.size()-1;
@@ -259,8 +258,7 @@ int searchEmployeeWithID(string id)
     }
 
 }
-int searchEmployeesWithDID(string DId)
-{
+int searchEmployeesWithDID(string DId){
     //binary search
     int start = 0;
     int end = (int)EmpSecondaryIndex.size()-1;
@@ -292,76 +290,110 @@ void addEmployees(fstream &Employees, fstream &EPrimaryIndex, fstream &ESecondar
 {
     Employees.open("Employees.txt", ios::out | ios::in );
 
-    int recordLength = EID.size()+DID.size()+EName.size()+EPosition.size()+4;
-    int firstBO;
+    int recordLength = EID.size()+DID.size()+EName.size()+EPosition.size()+4;int firstBO;
+    string h;char temp;
+    int nextAddressInLL=0 , currentAddressInLL=0, currenSize=0;
+    char tmp;string SDR;
+    bool done= false;
+    int nextAddressSize=0 ;
+    int nextLLByteOffset = 0;
+    char tmp2;string nextBO;
+
     Employees.seekg(0, ios::beg);
-    string h;
-    char temp;
     for(int i=0; i<10; i++)
     {
         Employees >> temp;
         h+=temp;
     }
-    cout << h << endl << Employees.tellg() << endl;
+
     stringstream transH(h);
-    int findDeletRecord=0 ;
-    transH>>findDeletRecord;
-    cout<<"\\\\\\\\\\\\\\\\"<<findDeletRecord<<endl;
-    //int findDeletRecord = stoi(h);
-    if(findDeletRecord==0)
+    transH >> nextAddressInLL;
+
+    if(nextAddressInLL == 0)
     {
-        findDeletRecord=-1;
+        nextAddressInLL=-1;
     }
-    cout<<"\\\\\\\\\\\\\\\\"<<findDeletRecord<<endl;
-    bool done= false;
-    if(findDeletRecord!=-1)
+
+    if(nextAddressInLL != -1)
     {
-        while(findDeletRecord!=-1) /////////////////////////////////////////////////////aaaaaaaaaaaaaaaaaaaaaaaaah
+        while(nextAddressInLL != -1)
         {
-            cout<<"firsttt"<<endl;
-            Employees.seekg(findDeletRecord + 1, ios::beg);
-            cout << "\\\\\\\\\\\\\\" << Employees.tellg() << endl;
-            char tmp;
-            string SDR;
+            cout<<"insideeee while"<<endl;
+
+            //////////////////////////////////////////////////////////////////
+            Employees.seekg(nextAddressInLL + 1, ios::beg);///
             Employees >> tmp;
             while(tmp!='|')
             {
-                SDR+=tmp;
+                SDR+=tmp;/////size deleted record
                 Employees >> tmp;
             }
             stringstream transSDR(SDR);
-            int sizeDeletedRecod=0 ;
-            transSDR>>sizeDeletedRecod;
-            cout<<"\\\\\\\\\\\\\\"<<SDR<<endl;
-            cout<<"\\\\\\\\\\\\\\"<<sizeDeletedRecod<<endl;
-            cout<<"\\\\\\\\\\\\\\"<<endl;
-            //int sizeDeletedRecod = intSDR);
+            transSDR >> nextAddressSize;
+            //int nextAddressSize = intSDR);
+            ///////////////////////////////////////////////////////////
 
-            if(recordLength <= sizeDeletedRecod)
+
+            if(recordLength <= nextAddressSize)
             {
-                int diff=sizeDeletedRecod-recordLength-3;
+                cout<<"inideee iffff"<<endl;
+                Employees.seekg(nextAddressInLL + 1+SDR.size(), ios::beg);///
+                cout<<"tellg()"<<Employees.tellg()<<endl;
+                cout<<Employees.get()<<endl;
+                Employees >> tmp2;
+                while(tmp2!='|')
+                {
+                    nextBO+=tmp2;
+                    Employees >> tmp2;
+                }
+                cout<<"nextbo"<<nextBO<<endl;
+                stringstream transnextBO(nextBO);
+                transnextBO >> nextLLByteOffset;
+                cout<<"--------"<<nextLLByteOffset<<endl;
+                //nextAddressInLL=nextLLByteOffset;
+
+                int diff= nextAddressSize - recordLength - 3;
                 string dif;
-                cout<<"\\\\\\\\\\\\\\"<<recordLength<<endl;
-                //cout<<"\\\\\\\\\\\\\\"<<Employees.tellg()<<endl;
-                Employees.seekp(findDeletRecord, ios::beg);
+                Employees.seekp(nextAddressInLL, ios::beg);
                 Employees << setfill ('0') << setw (3);
                 for(int i=0;i<diff;i++)
                 {
                     dif+='-';
                 }
+                firstBO = Employees.tellp();
                 Employees << recordLength+dif.size() ;
                 Employees << EID << "$" << DID << "$" << EName << "$" << EPosition <<dif<< "$";
-                findDeletRecord=-1;
-                //cout<<"diff--------"<<diff<<endl;
+
+                cout<<nextAddressInLL<<"--------------------"<<nextLLByteOffset<<endl;
+
+                nextAddressInLL=nextLLByteOffset;
+
+                if(nextAddressInLL==0){nextAddressInLL=-1;}
+
+                cout<<currentAddressInLL<<endl;
+                if(currentAddressInLL==0)
+                {
+                    Employees.seekp(0, ios::beg);
+                    Employees << setfill ('0') << setw (10);
+                    Employees << nextAddressInLL;
+                }
+                else {
+                    Employees.seekp(currentAddressInLL,ios::beg);
+                    Employees<<'*'<<currenSize<<'|'<<nextAddressInLL<<'|';
+                }
                 Employees.close();
                 addEPrimaryIndex(EPrimaryIndex, EID, firstBO);
                 SecondaryIndex(ESecondaryIndex, ESecondaryData, DID, EID);
                 done=true;
+                nextAddressInLL=-1;
                 break;
             }
 
             else
             {
+                currentAddressInLL=nextAddressInLL;
+                currenSize=nextAddressSize;
+                nextAddressInLL=nextLLByteOffset;
                 cout<<"second"<<endl;
 
                 Employees.seekg(1, ios::cur);

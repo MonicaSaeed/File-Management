@@ -214,14 +214,15 @@ int main()
             string DepId;
             cin>>DepId;
             vector<Employee> emp = getEmployeeWithDepID(EPrimaryIndex,ESecondaryData,ESecondaryIndex,Employees,DepId);
-            if(emp.size()==0)
+            for(int i=0;i<emp.size();i++)
             {
-                cout<<"Department not found"<<endl;
-            }
-            else
-            {
-                for(int i=0;i<emp.size();i++)
+                if(emp[i].EID.empty())
                 {
+                    cout<<"Department not found"<<endl;
+                }
+                else
+                {
+
                     emp[i].printEmployee();
                     cout<<endl;
                 }
@@ -249,13 +250,13 @@ int main()
             string depName;
             cin>>depName;
             vector<Department> dep = getDepByName(DPrimaryIndex,DSecondaryData,DSecondaryIndex,DepartmentFile,depName);
-            if(dep.size()==0)
+            for(int i=0;i<dep.size();i++)
             {
-                cout<<"Department not found"<<endl;
-            }
-            else
-            {
-                for(int i=0;i<dep.size();i++)
+                if(dep[i].DID.empty())
+                {
+                    cout<<"Department not found"<<endl;
+                }
+                else
                 {
                     dep[i].printDepartment();
                     cout<<endl;
@@ -443,6 +444,7 @@ void sortPrimaryIndex(fstream &EPrimaryIndex){
     }
     EPrimaryIndex.close();
 }
+
 void deletePrimaryIndex(fstream &EPrimaryIndex,string id){
     vector <pair<string,int>>v2(v); //v carries the primary index
     v.clear();
@@ -466,6 +468,7 @@ void deletePrimaryIndex(fstream &EPrimaryIndex,string id){
 
 
 }
+
 int searchEmployeeWithID(string id){
     //binary search
     int start = 0;
@@ -522,6 +525,9 @@ int searchEmployeesWithDID(string DId){
     }
 
 }
+
+
+
 void addEmployees(fstream &Employees, fstream &EPrimaryIndex, fstream &ESecondaryIndex, fstream &ESecondaryData, string EID, string DID, string EName, string EPosition)
 {
     Employees.open("Employees.txt", ios::out | ios::in );
@@ -602,9 +608,10 @@ void addEmployees(fstream &Employees, fstream &EPrimaryIndex, fstream &ESecondar
 
                 cout<<nextAddressInLL<<"--------------------"<<nextLLByteOffset<<endl;
 
+                if(nextLLByteOffset==-1)
                 nextAddressInLL=nextLLByteOffset;
 
-                if(nextAddressInLL==0){nextAddressInLL=-1;}
+               /////////////////////////////////////////////////////////// if(nextAddressInLL==0){nextAddressInLL=-1;}
 
                 cout<<currentAddressInLL<<endl;
                 if(currentAddressInLL==0)
@@ -617,8 +624,12 @@ void addEmployees(fstream &Employees, fstream &EPrimaryIndex, fstream &ESecondar
                     Employees.seekp(currentAddressInLL,ios::beg);
                     Employees<<'*'<<currenSize<<'|'<<nextAddressInLL<<'|';
                 }
+                if(currentAddressInLL==0)
+                {
+                    currentAddressInLL=10;
+                }
                 Employees.close();
-                addEPrimaryIndex(EPrimaryIndex, EID, firstBO);
+                addEPrimaryIndex(EPrimaryIndex, EID, currentAddressInLL);
                 SecondaryIndex(ESecondaryIndex, ESecondaryData, DID, EID);
                 done=true;
                 nextAddressInLL=-1;
@@ -661,6 +672,9 @@ void addEmployees(fstream &Employees, fstream &EPrimaryIndex, fstream &ESecondar
         SecondaryIndex(ESecondaryIndex, ESecondaryData, DID, EID);
     }
 }
+
+
+
 void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID)
 {
     Employee.open("Employees.txt", ios::in | ios::out);
@@ -711,6 +725,7 @@ void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID)
     //deletePrimaryIndex(EPrimaryIndex,employeeID);///////matnafezsh
     //Employee.open("Employee.txt", ios::in |ios::out|ios::app);
 }
+
 void writeSecondaryIndex(fstream& ESecondaryIndex,fstream &ESecondaryData)
 {
     ESecondaryIndex.open("ESecondaryIndex.txt",ios::in | ios::out);
@@ -786,6 +801,9 @@ vector<Employee> getEmployeeWithDepID(fstream &EPrimaryIndex, fstream &ESecondar
     } while (p.second!=-1);
     return emp;
 }
+
+
+
 void addDepartement(fstream &Department, fstream &DPrimaryIndex,fstream &DSecondaryIndex,fstream &DSecondaryData,string DepID, string DepName, string DepManager)
 {
     Department.open("Department.txt", ios::out | ios::in );
@@ -882,8 +900,12 @@ void addDepartement(fstream &Department, fstream &DPrimaryIndex,fstream &DSecond
                     Department.seekp(currentAddressInLL,ios::beg);
                     Department<<'*'<<currenSize<<'|'<<nextAddressInLL<<'|';
                 }
+                if(currentAddressInLL==0)
+                {
+                    currentAddressInLL=10;
+                }
                 Department.close();
-                addDPrimaryIndex(DPrimaryIndex, DepID, firstBO);
+                addDPrimaryIndex(DPrimaryIndex, DepID, currentAddressInLL);
                 SecondaryIndexDep(DSecondaryIndex,DSecondaryData,DepID,DepName);
 
                 done=true;
@@ -927,6 +949,9 @@ void addDepartement(fstream &Department, fstream &DPrimaryIndex,fstream &DSecond
         SecondaryIndexDep(DSecondaryIndex,DSecondaryData,DepID,DepName);
     }
 }
+
+
+
 int searchDepWithDepName(string DName)
 {
     //binary search
@@ -1048,7 +1073,7 @@ void deleteDepPrimaryIndex(fstream &DPrimaryIndex,string DepId)
     s=vDepPI.size();
     cout<<vDepPI.size()<<"v size after"<<endl;
     //  sortPrimaryIndex(EPrimaryIndex);
-    DPrimaryIndex.open("EPrimaryIndex.txt", ios::in | ios::out | ios::trunc);
+    DPrimaryIndex.open("DPrimaryIndex.txt", ios::in | ios::out | ios::trunc);
     for(int i=0;i<v.size();i++)
     {
         DPrimaryIndex<<vDepPI[i].first<<'&'<<vDepPI[i].second<<endl;
@@ -1136,6 +1161,8 @@ void SecondaryIndexDep(fstream &DSecondaryIndex,fstream &DSecondaryData, string 
     //write the secondary index and secondary data
     writeDepSecondaryIndex(DSecondaryIndex,DSecondaryData);
 }
+
+
 void deleteDepartment(fstream &Department,fstream &DPrimaryIndex, string Did)
 {
     Department.open("Department.txt", ios::in | ios::out);
@@ -1186,6 +1213,8 @@ void deleteDepartment(fstream &Department,fstream &DPrimaryIndex, string Did)
     //deletePrimaryIndex(EPrimaryIndex,employeeID);///////matnafezsh
     //Employee.open("Employee.txt", ios::in |ios::out|ios::app);
 }
+
+
 vector<Department> getDepByName(fstream &DPrimaryIndex, fstream &DSecondaryData, fstream &DSecondaryIndex, fstream &DepartmentFile,string dName)
 {
     int searchSBO = searchDepWithDepName(dName);

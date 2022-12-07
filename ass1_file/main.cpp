@@ -532,15 +532,21 @@ void addEmployees(fstream &Employees, fstream &EPrimaryIndex, fstream &ESecondar
 {
     Employees.open("Employees.txt", ios::out | ios::in );
 
-    int recordLength = EID.size()+DID.size()+EName.size()+EPosition.size()+4;int firstBO;
-    string h;char temp;
-    int nextAddressInLL=0 , currentAddressInLL=0, currenSize=0;
-    char tmp;string SDR;
+    int recordLength = EID.size()+DID.size()+EName.size()+EPosition.size()+4;
+    int recordBO;
+    string h;
+    char temp;
+    int value=0, nextAddressInLL=0 , currentAddressInLL=0, currenSize=0;
+    char tmp;
+    string SDR;
     bool done= false;
-    int nextAddressSize=0 ;
-    int nextLLByteOffset = 0;
-    char tmp2;string nextBO;
+    //int nextAddressSize=0 ;
+    //int nextLLByteOffset = 0;
+    char tmp2;
+    string nextBO;
 
+
+    ////loop to raed header
     Employees.seekg(0, ios::beg);
     for(int i=0; i<10; i++)
     {
@@ -549,21 +555,31 @@ void addEmployees(fstream &Employees, fstream &EPrimaryIndex, fstream &ESecondar
     }
 
     stringstream transH(h);
-    transH >> nextAddressInLL;
+    transH >> value;
 
-    if(nextAddressInLL == 0)
+    if(value == 0)
     {
-        nextAddressInLL=-1;
+        value=-1;
     }
 
-    if(nextAddressInLL != -1)
+    cout<<"this is valueeee------"<<value<<endl;
+    if(value==-1)
     {
-        while(nextAddressInLL != -1)
+        Employees.seekp(0, ios::end);
+        recordBO = Employees.tellp();
+        Employees << setfill('0') << setw(3);
+        Employees << recordLength;
+        Employees << EID << "$" << DID << "$" << EName << "$" << EPosition << "$";
+        Employees.close();
+        addEPrimaryIndex(EPrimaryIndex, EID, recordBO);
+        SecondaryIndex(ESecondaryIndex, ESecondaryData, DID, EID);
+    }
+    else if(value != -1)
+    {
+        while(value != -1)
         {
-            cout<<"insideeee while"<<endl;
-
-            //////////////////////////////////////////////////////////////////
-            Employees.seekg(nextAddressInLL + 1, ios::beg);///
+            //////////////////////////////////////////////////////////////////loop to read size of past deleted records
+            Employees.seekg(value + 1, ios::beg);///
             Employees >> tmp;
             while(tmp!='|')
             {
@@ -571,47 +587,34 @@ void addEmployees(fstream &Employees, fstream &EPrimaryIndex, fstream &ESecondar
                 Employees >> tmp;
             }
             stringstream transSDR(SDR);
-            transSDR >> nextAddressSize;
-            //int nextAddressSize = intSDR);
-            ///////////////////////////////////////////////////////////
+            transSDR >> currenSize;
+            ///////////////////////////////////////////////////////////loop to read next byte offset
 
-
-            if(recordLength <= nextAddressSize)
+            Employees.seekg(value + 1+SDR.size(), ios::beg);///
+            Employees >> tmp2;
+            while(tmp2!='|')
             {
-                cout<<"inideee iffff"<<endl;
-                Employees.seekg(nextAddressInLL + 1+SDR.size(), ios::beg);///
-                cout<<"tellg()"<<Employees.tellg()<<endl;
-                cout<<Employees.get()<<endl;
+                nextBO+=tmp2;
                 Employees >> tmp2;
-                while(tmp2!='|')
-                {
-                    nextBO+=tmp2;
-                    Employees >> tmp2;
-                }
-                cout<<"nextbo"<<nextBO<<endl;
-                stringstream transnextBO(nextBO);
-                transnextBO >> nextLLByteOffset;
-                cout<<"--------"<<nextLLByteOffset<<endl;
-                //nextAddressInLL=nextLLByteOffset;
+            }
+            stringstream transnextBO(nextBO);
+            transnextBO >> nextAddressInLL;
+            /////////////////////////////////////////////////////////////
 
-                int diff= nextAddressSize - recordLength - 3;
+            if(recordLength <= currenSize-3)
+            {
+                int diff= currenSize - recordLength - 3;
                 string dif;
-                Employees.seekp(nextAddressInLL, ios::beg);
-                Employees << setfill ('0') << setw (3);
+                Employees.seekp(value, ios::beg);
                 for(int i=0;i<diff;i++)
                 {
                     dif+='-';
                 }
-                firstBO = Employees.tellp();
+                Employees << setfill ('0') << setw (3);
                 Employees << recordLength+dif.size() ;
                 Employees << EID << "$" << DID << "$" << EName << "$" << EPosition <<dif<< "$";
 
-                cout<<nextAddressInLL<<"--------------------"<<nextLLByteOffset<<endl;
-
-                if(nextLLByteOffset==-1)
-                nextAddressInLL=nextLLByteOffset;
-
-               /////////////////////////////////////////////////////////// if(nextAddressInLL==0){nextAddressInLL=-1;}
+                /////////////////////////////////////////////////////////// if(nextAddressInLL==0){nextAddressInLL=-1;}
 
                 cout<<currentAddressInLL<<endl;
                 if(currentAddressInLL==0)
@@ -624,53 +627,26 @@ void addEmployees(fstream &Employees, fstream &EPrimaryIndex, fstream &ESecondar
                     Employees.seekp(currentAddressInLL,ios::beg);
                     Employees<<'*'<<currenSize<<'|'<<nextAddressInLL<<'|';
                 }
-                if(currentAddressInLL==0)
-                {
-                    currentAddressInLL=10;
-                }
+//                if(currentAddressInLL==0)
+//                {
+//                    currentAddressInLL=10;
+//                }
                 Employees.close();
-                addEPrimaryIndex(EPrimaryIndex, EID, currentAddressInLL);
+                addEPrimaryIndex(EPrimaryIndex, EID, value);
                 SecondaryIndex(ESecondaryIndex, ESecondaryData, DID, EID);
                 done=true;
                 nextAddressInLL=-1;
                 break;
             }
-
             else
             {
-                currentAddressInLL=nextAddressInLL;
-                currenSize=nextAddressSize;
-                nextAddressInLL=nextLLByteOffset;
-                cout<<"second"<<endl;
-
-                Employees.seekg(1, ios::cur);
-                cout << Employees.get() << endl;
-                char tmp2;
-                string nextBO;
-                Employees >> tmp2;
-                while(tmp!='|')
-                {
-                    nextBO+=tmp2;
-                    Employees >> tmp2;
-                }
-                stringstream transnextBO(nextBO);
-                int findDeletRecord = 0;
-                transnextBO>>findDeletRecord;
+                currentAddressInLL=value;
+                value=nextAddressInLL;
 
             }
         }
     }
-    cout<<"third"<<endl;
-    if(done== false) {
-        Employees.seekp(0, ios::end);
-        firstBO = Employees.tellp();
-        Employees << setfill('0') << setw(3);
-        Employees << recordLength;
-        Employees << EID << "$" << DID << "$" << EName << "$" << EPosition << "$";
-        Employees.close();
-        addEPrimaryIndex(EPrimaryIndex, EID, firstBO);
-        SecondaryIndex(ESecondaryIndex, ESecondaryData, DID, EID);
-    }
+
 }
 
 

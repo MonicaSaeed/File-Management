@@ -472,7 +472,7 @@ void deletePrimaryIndex(fstream &EPrimaryIndex,string id){
 int searchEmployeeWithID(string id){
     //binary search
     int start = 0;
-    int end = (int)v.size()-1;
+    int end = v.size()-1;
     int mid = (start+end)/2;
     while(start<=end)
     {
@@ -495,6 +495,7 @@ int searchEmployeeWithID(string id){
     {
         return -1;
     }
+    return -1;
 
 }
 int searchEmployeesWithDID(string DId){
@@ -523,6 +524,7 @@ int searchEmployeesWithDID(string DId){
     {
         return -1;
     }
+    return -1;
 
 }
 
@@ -619,6 +621,7 @@ void addEmployees(fstream &Employees, fstream &EPrimaryIndex, fstream &ESecondar
                 cout<<currentAddressInLL<<endl;
                 if(currentAddressInLL==0)
                 {
+                    if(nextAddressInLL==0){nextAddressInLL=-1;}
                     Employees.seekp(0, ios::beg);
                     Employees << setfill ('0') << setw (10);
                     Employees << nextAddressInLL;
@@ -723,58 +726,60 @@ Employee getEmployee(fstream &EPrimaryIndex,fstream &Employees,string id)
 {
     Employees.open("Employees.txt", ios::out | ios::in );
     int pos=searchEmployeeWithID(id);
-    if (pos == -1)
+    if (pos != -1)
     {
-        return Employee();
-    }
-    Employees.seekg(pos,ios::beg);
-    char temp;
-    string Bo;
-    for(int i=0;i<3;i++){
-        Employees>>temp;
-        Bo+=temp;
-    }
-    int intBO=stoi(Bo);
-    int idx = 0;
-    string concat,EID, DID, EName, EPosition;
-    for(int i=0;i<intBO;i++){
-        Employees>>temp;
-        if(temp!='$'){
-            concat += temp;
-        }else{
-            if(idx==0){
-                EID = concat;
-            }else if(idx==1){
-                DID = concat;
-            }else if(idx==2){
-                EName = concat;
-            }else if(idx==3){
-                EPosition = concat;
-            }
-            concat = "";
-            idx++;
+        Employees.seekg(pos,ios::beg);
+        char temp;
+        string Bo;
+        for(int i=0;i<3;i++){
+            Employees>>temp;
+            Bo+=temp;
         }
+        int intBO=stoi(Bo);
+        int idx = 0;
+        string concat,EID, DID, EName, EPosition;
+        for(int i=0;i<intBO;i++){
+            Employees>>temp;
+            if(temp!='$'){
+                concat += temp;
+            }else{
+                if(idx==0){
+                    EID = concat;
+                }else if(idx==1){
+                    DID = concat;
+                }else if(idx==2){
+                    EName = concat;
+                }else if(idx==3){
+                    EPosition = concat;
+                }
+                concat = "";
+                idx++;
+            }
 
+        }
+        Employees.close();
+        return Employee(EID,DID,EName,EPosition);
     }
-    Employees.close();
-    return Employee(EID,DID,EName,EPosition);
+    return Employee();
+
 }
 vector<Employee> getEmployeeWithDepID(fstream &EPrimaryIndex, fstream &ESecondaryData, fstream &ESecondaryIndex, fstream &Employees,string DId)
 {
     int searchSBO = searchEmployeesWithDID(DId);
     vector<Employee> emp(0);
-    if(searchSBO==-1){
-        return emp;}
+    if(searchSBO!=-1){
+        string searchID;
 
-    string searchID;
+        pair<string,int> p;
+        do {
+            p = IDList[searchSBO-1].second;
+            Employee e =  getEmployee(EPrimaryIndex,Employees,p.first);
+            emp.push_back(e);
+            searchSBO=p.second;
+        } while (p.second!=-1);
+        return emp;
+    }
 
-    pair<string,int> p;
-    do {
-        p = IDList[searchSBO-1].second;
-        Employee e =  getEmployee(EPrimaryIndex,Employees,p.first);
-        emp.push_back(e);
-        searchSBO=p.second;
-    } while (p.second!=-1);
     return emp;
 }
 
@@ -785,15 +790,20 @@ void addDepartement(fstream &Department, fstream &DPrimaryIndex,fstream &DSecond
     Department.open("Department.txt", ios::out | ios::in );
 
     int depRL=DepID.size()+DepName.size()+DepManager.size()+3;
-    int firstBO;
-    string h;char temp;
-    int nextAddressInLL=0 , currentAddressInLL=0, currenSize=0;
-    char tmp;string SDR;
+    int recordBO;
+    string h;
+    char temp;
+    int value=0, nextAddressInLL=0 , currentAddressInLL=0, currenSize=0;
+    char tmp;
+    string SDR;
     bool done= false;
-    int nextAddressSize=0 ;
-    int nextLLByteOffset = 0;
-    char tmp2;string nextBO;
+    //int nextAddressSize=0 ;
+    //int nextLLByteOffset = 0;
+    char tmp2;
+    string nextBO;
 
+
+    ////loop to raed header
     Department.seekg(0, ios::beg);
     for(int i=0; i<10; i++)
     {
@@ -802,21 +812,31 @@ void addDepartement(fstream &Department, fstream &DPrimaryIndex,fstream &DSecond
     }
 
     stringstream transH(h);
-    transH >> nextAddressInLL;
+    transH >> value;
 
-    if(nextAddressInLL == 0)
+    if(value == 0)
     {
-        nextAddressInLL=-1;
+        value=-1;
     }
 
-    if(nextAddressInLL != -1)
+    cout<<"this is valueeee------"<<value<<endl;
+    if(value==-1)
     {
-        while(nextAddressInLL != -1)
+        Department.seekp(0, ios::end);
+        recordBO = Department.tellp();
+        Department << setfill('0') << setw(3);
+        Department << depRL;
+        Department << DepID << "$" << DepName << "$" << DepManager << "$";
+        Department.close();
+        addDPrimaryIndex(DPrimaryIndex, DepID, recordBO);
+        SecondaryIndexDep(DSecondaryIndex, DSecondaryData, DepID, DepName);
+    }
+    else if(value != -1)
+    {
+        while(value != -1)
         {
-            cout<<"insideeee while"<<endl;
-
-            //////////////////////////////////////////////////////////////////
-            Department.seekg(nextAddressInLL + 1, ios::beg);///
+            //////////////////////////////////////////////////////////////////loop to read size of past deleted records
+            Department.seekg(value + 1, ios::beg);///
             Department >> tmp;
             while(tmp!='|')
             {
@@ -824,50 +844,39 @@ void addDepartement(fstream &Department, fstream &DPrimaryIndex,fstream &DSecond
                 Department >> tmp;
             }
             stringstream transSDR(SDR);
-            transSDR >> nextAddressSize;
-            //int nextAddressSize = intSDR);
-            ///////////////////////////////////////////////////////////
+            transSDR >> currenSize;
+            ///////////////////////////////////////////////////////////loop to read next byte offset
 
-
-            if(depRL <= nextAddressSize)
+            Department.seekg(value + 1+SDR.size(), ios::beg);///
+            Department >> tmp2;
+            while(tmp2!='|')
             {
-                cout<<"inideee iffff"<<endl;
-                Department.seekg(nextAddressInLL + 1+SDR.size(), ios::beg);///
-                cout<<"tellg()"<<Department.tellg()<<endl;
-                cout<<Department.get()<<endl;
+                nextBO+=tmp2;
                 Department >> tmp2;
-                while(tmp2!='|')
-                {
-                    nextBO+=tmp2;
-                    Department >> tmp2;
-                }
-                cout<<"nextbo"<<nextBO<<endl;
-                stringstream transnextBO(nextBO);
-                transnextBO >> nextLLByteOffset;
-                cout<<"--------"<<nextLLByteOffset<<endl;
-                //nextAddressInLL=nextLLByteOffset;
+            }
+            stringstream transnextBO(nextBO);
+            transnextBO >> nextAddressInLL;
+            /////////////////////////////////////////////////////////////
 
-                int diff= nextAddressSize - depRL - 3;
+            if(depRL <= currenSize-3)
+            {
+                int diff= currenSize - depRL - 3;
                 string dif;
-                Department.seekp(nextAddressInLL, ios::beg);
-                Department << setfill ('0') << setw (3);
+                Department.seekp(value, ios::beg);
                 for(int i=0;i<diff;i++)
                 {
                     dif+='-';
                 }
-                firstBO = Department.tellp();
+                Department << setfill ('0') << setw (3);
                 Department << depRL+dif.size() ;
                 Department << DepID << "$" << DepName << "$" << DepManager << "$";
 
-                cout<<nextAddressInLL<<"--------------------"<<nextLLByteOffset<<endl;
-
-                nextAddressInLL=nextLLByteOffset;
-
-                if(nextAddressInLL==0){nextAddressInLL=-1;}
+                /////////////////////////////////////////////////////////// if(nextAddressInLL==0){nextAddressInLL=-1;}
 
                 cout<<currentAddressInLL<<endl;
                 if(currentAddressInLL==0)
                 {
+                    if(nextAddressInLL==0){nextAddressInLL=-1;}
                     Department.seekp(0, ios::beg);
                     Department << setfill ('0') << setw (10);
                     Department << nextAddressInLL;
@@ -876,53 +885,24 @@ void addDepartement(fstream &Department, fstream &DPrimaryIndex,fstream &DSecond
                     Department.seekp(currentAddressInLL,ios::beg);
                     Department<<'*'<<currenSize<<'|'<<nextAddressInLL<<'|';
                 }
-                if(currentAddressInLL==0)
-                {
-                    currentAddressInLL=10;
-                }
+//                if(currentAddressInLL==0)
+//                {
+//                    currentAddressInLL=10;
+//                }
                 Department.close();
-                addDPrimaryIndex(DPrimaryIndex, DepID, currentAddressInLL);
-                SecondaryIndexDep(DSecondaryIndex,DSecondaryData,DepID,DepName);
-
+                addDPrimaryIndex(DPrimaryIndex, DepID, value);
+                SecondaryIndexDep(DSecondaryIndex, DSecondaryData, DepID, DepName);
                 done=true;
                 nextAddressInLL=-1;
                 break;
             }
-
             else
             {
-                currentAddressInLL=nextAddressInLL;
-                currenSize=nextAddressSize;
-                nextAddressInLL=nextLLByteOffset;
-                cout<<"second"<<endl;
-
-                Department.seekg(1, ios::cur);
-                cout << Department.get() << endl;
-                char tmp2;
-                string nextBO;
-                Department >> tmp2;
-                while(tmp!='|')
-                {
-                    nextBO+=tmp2;
-                    Department >> tmp2;
-                }
-                stringstream transnextBO(nextBO);
-                int findDeletRecord = 0;
-                transnextBO>>findDeletRecord;
+                currentAddressInLL=value;
+                value=nextAddressInLL;
 
             }
         }
-    }
-    cout<<"third"<<endl;
-    if(done== false) {
-        Department.seekp(0, ios::end);
-        firstBO = Department.tellp();
-        Department << setfill('0') << setw(3);
-        Department << depRL;
-        Department << DepID << "$" << DepName << "$" << DepManager << "$";
-        Department.close();
-        addDPrimaryIndex(DPrimaryIndex, DepID, firstBO);
-        SecondaryIndexDep(DSecondaryIndex,DSecondaryData,DepID,DepName);
     }
 }
 
@@ -990,41 +970,42 @@ Department getDepartment(fstream &DPrimaryIndex, fstream &DepartmentFile, string
 {
     DepartmentFile.open("Department.txt", ios::out | ios::in );
     int pos= searchDepWithDID(DepID);
-    if (pos == -1)
+    if (pos != -1)
     {
-        return Department();
-    }
-    DepartmentFile.seekg(pos,ios::beg);
-    char temp;
-    string Bo;
-    for(int i=0;i<3;i++){
-        DepartmentFile>>temp;
-        Bo+=temp;
-    }
-    int intBO=stoi(Bo);
-    string concat,DID,DName,DManager;
-    int idx = 0;
-    for(int i=0;i<intBO;i++){
-        DepartmentFile>>temp;
-        if(temp!='$'){
-            concat+=temp;
+        DepartmentFile.seekg(pos,ios::beg);
+        char temp;
+        string Bo;
+        for(int i=0;i<3;i++){
+            DepartmentFile>>temp;
+            Bo+=temp;
         }
-        else{
-            if(idx==0){
-                DID=concat;
+        int intBO=stoi(Bo);
+        string concat,DID,DName,DManager;
+        int idx = 0;
+        for(int i=0;i<intBO;i++){
+            DepartmentFile>>temp;
+            if(temp!='$'){
+                concat+=temp;
             }
-            else if(idx==1){
-                DName=concat;
+            else{
+                if(idx==0){
+                    DID=concat;
+                }
+                else if(idx==1){
+                    DName=concat;
+                }
+                else if(idx==2){
+                    DManager=concat;
+                }
+                idx++;
+                concat="";
             }
-            else if(idx==2){
-                DManager=concat;
-            }
-            idx++;
-            concat="";
         }
+        DepartmentFile.close();
+        return Department(DID,DName,DManager);
     }
-    DepartmentFile.close();
-    return Department(DID,DName,DManager);
+
+    return Department();
 }
 void addDPrimaryIndex(fstream &DPrimaryIndex, string depID,int depBo)
 {
@@ -1196,13 +1177,15 @@ vector<Department> getDepByName(fstream &DPrimaryIndex, fstream &DSecondaryData,
     int searchSBO = searchDepWithDepName(dName);
     vector<Department> dep(0);
     if(searchSBO==-1){
-        return dep;}
-    pair<string,int> p;
-    do {
-        p = DepIDList[searchSBO-1].second;
-        Department d = getDepartment(DPrimaryIndex, DepartmentFile, p.first);
-        dep.push_back(d);
-        searchSBO=p.second;
-    } while (p.second!=-1);
+        pair<string,int> p;
+        do {
+            p = DepIDList[searchSBO-1].second;
+            Department d = getDepartment(DPrimaryIndex, DepartmentFile, p.first);
+            dep.push_back(d);
+            searchSBO=p.second;
+        } while (p.second!=-1);
+        return dep;
+    }
+
     return dep;
 }

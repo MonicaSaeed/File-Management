@@ -36,74 +36,32 @@ struct BTreeNode {
 // B-tree index on a binary file
 class BTree {
 private:
-    string fileName;
-    int m;
     int root;
     int firstEmptyNode;
     vector<int> visitedNodes;
 
 
 public:
-    BTree(string fileName,int m,int root,int firstEmptyNode){
-        this->fileName=fileName;
-        this->m=m;
+    BTree(int root,int firstEmptyNode){
         this->root=root;
         this->firstEmptyNode=firstEmptyNode;
         //this->visitedNodes=NULL;
     }
-    BTreeNode readRecord(int nodeNum);
-    void writeNode(BTreeNode btn, int nodeNum);
+    void CreateIndexFile (string filename, int numberOfRecords, int m);
+    void DisplayIndexFileContent (string filename,int rows);
+
+    //int InsertNewRecordAtIndex (string filename, int RecordID, BTreeNode btn);
+    BTreeNode readRecord(string filename,int nodeNum);
+    void writeNode(string filename,BTreeNode btn, int nodeNum);
 
 };
 
-// Reads a record from the binary file
-BTreeNode BTree::readRecord(int nodeNum) {
-    // Open the file in binary mode
-    fstream file(fileName, ios::in | ios::binary);
-
-    // Seek to the node position
-    file.seekg(nodeNum * sizeof(BTreeNode), ios::beg);
-
-    // Read the node from the file
-    BTreeNode btn;
-    file.read((char*)&btn, sizeof(BTreeNode));
-
-    // Close the file
-    file.close();
-
-    return btn;
-}
-
-// Writes a node to the binary file
-void BTree::writeNode(BTreeNode btn, int nodeNum) {
-    // Open the file in binary mode
-    fstream file(fileName, ios::out | ios::app | ios::binary);
-
-    // Seek to the node position
-    file.seekp(nodeNum * sizeof(BTreeNode), ios::beg);
-
-    // Write the node to the file
-    file.write((char*)&btn, sizeof(BTreeNode));
-
-    // Close the file
-    file.close();
-}
-
-
-int main()
-{
-    // Create a B-tree with a maximum of 5 keys per node
-    cout<<"enter rows, m ,file name";
-    int rows;cin>>rows;
-    int m; cin>>m;
-    string fileName;cin>>fileName;
-    BTree btree(fileName, m, 0, 2);
-
+void BTree::CreateIndexFile (string filename, int numberOfRecords, int m){
     //initial write
-    for(int i=0;i<rows;i++){
+    for(int i=0;i<numberOfRecords;i++){
         vector <int> keys(m);
         vector <int>references(m);
-        if(i==rows-1){
+        if(i==numberOfRecords-1){
             for(int j=0;j<m;j++){
                 keys[j]=-1;
                 references[j]=-1;
@@ -123,13 +81,16 @@ int main()
         }
 
         BTreeNode btn(-1,m,keys,references);
-        btree.writeNode(btn, i);
+        writeNode(filename,btn, i);
     }
 
+}
+
+void BTree::DisplayIndexFileContent (string filename,int rows){
     //initial read
     for(int i=0;i<rows;i++){
         // Read the node from the file
-        BTreeNode readNode = btree.readRecord(i);
+        BTreeNode readNode = readRecord(filename,i);
 
         // Print the node values
         cout << "Is leaf: " << readNode.isLeaf << endl;
@@ -145,6 +106,57 @@ int main()
         }
         cout << endl;
     }
+}
+
+// Reads a record from the binary file
+BTreeNode BTree::readRecord(string filename,int nodeNum) {
+    // Open the file in binary mode
+    fstream file(filename, ios::in | ios::binary);
+
+    // Seek to the node position
+    file.seekg(nodeNum * sizeof(BTreeNode), ios::beg);
+
+    // Read the node from the file
+    BTreeNode btn;
+    file.read((char*)&btn, sizeof(BTreeNode));
+
+    // Close the file
+    file.close();
+
+    return btn;
+}
+
+// Writes a node to the binary file
+void BTree::writeNode(string filename,BTreeNode btn, int nodeNum) {
+    // Open the file in binary mode
+    fstream file(filename, ios::out | ios::app | ios::binary);
+
+    // Seek to the node position
+    file.seekp(nodeNum * sizeof(BTreeNode), ios::beg);
+
+    // Write the node to the file
+    file.write((char*)&btn, sizeof(BTreeNode));
+
+    // Close the file
+    file.close();
+}
+
+
+int main()
+{
+    // Create a B-tree with a maximum of 5 keys per node
+    cout<<"enter rows, m ,file name";
+    int rows;cin>>rows;
+    int m; cin>>m;
+    string fileName;cin>>fileName;
+    BTree btree(0, 1);
+    btree.CreateIndexFile(fileName,rows,m);
+    btree.DisplayIndexFileContent(fileName,rows);
+
+
 
     return 0;
 }
+
+//search  vest
+//

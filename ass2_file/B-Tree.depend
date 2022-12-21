@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1671614801 source:c:\users\monic\desktop\b-tree\main.cpp
+	<iostream>
+	<fstream>
+	<vector>
+

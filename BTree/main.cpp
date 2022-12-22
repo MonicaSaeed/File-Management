@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include<bits/stdc++.h>
 
 using namespace std;
 
@@ -39,9 +40,10 @@ class BTree {
 private:
     int root;
     int firstEmptyNode;
-    vector<BTreeNode> visitedNodes;
 
 public:
+    vector<int> visitedNodes;
+
     BTree(int root,int firstEmptyNode){
         this->root=root;
         this->firstEmptyNode=firstEmptyNode;
@@ -52,9 +54,9 @@ public:
     void DisplayIndexFileContent (string filename,int rows);
     BTreeNode readRecord(string filename,int nodeNum);
     int SearchARecord (string filename, int RecordID);
+    void DeleteRecordFromIndex (string filename, int RecordID);
 
 };
-
 
 
 void BTree::CreateIndexFile (string filename, int numberOfRecords, int m){
@@ -149,9 +151,12 @@ BTreeNode BTree::readRecord(string filename,int nodeNum) {
 
 
 int BTree::SearchARecord (string filename, int RecordID){
+    visitedNodes.clear();
     int refReturn=-1;
     BTreeNode btn;
     int m=1;
+    //int sz=1;
+    visitedNodes.push_back(1);
     do
     {
         btn = readRecord(filename,m);
@@ -164,12 +169,12 @@ int BTree::SearchARecord (string filename, int RecordID){
             if(btn.keys[i]>RecordID || btn.keys[i]==RecordID){
                 refReturn=btn.references[i];
                 m=refReturn;
+                if(btn.isLeaf==1){
+                    visitedNodes.push_back(btn.references[i]);
+                }
                 break;
             }
         }
-
-        visitedNodes.push_back(btn);
-
     }while(btn.isLeaf==1 && refReturn != -1); //non
 
 
@@ -196,6 +201,49 @@ int BTree::SearchARecord (string filename, int RecordID){
 }
 
 
+void BTree::DeleteRecordFromIndex (string filename, int RecordID){
+    int searchReturn = SearchARecord(filename,RecordID);
+    if(searchReturn != -1)
+    {
+        for(int i=0;i<visitedNodes.size();i++) //visited
+        {
+            BTreeNode btn = readRecord(filename,visitedNodes[i]);
+            for(int j=0 ;j<btn.keys.size();j++)
+            {
+                if(btn.keys[j]==RecordID){
+                    btn.keys[j]=-1;
+                    btn.references[j]=-1;
+                }
+            }
+            int sz = btn.keys.size();
+            vector < pair<int,int> > vec;
+            for(int i=0;i<sz;i++){
+                if(btn.keys[i]!=-1){
+                    /*pair<int,int> p;
+                    p.first=btn.keys[i];
+                    p.second=btn.references[i];*/
+                    vec.push_back( make_pair(btn.keys[i],btn.references[i]) );
+                }
+            }
+
+            btn.keys.clear();
+            btn.references.clear();
+
+            sort(vec.begin(), vec.end());
+
+            for(int i=0;i<vec.size();i++){
+                btn.keys[i] = vec[i].first;
+                btn.references[i] = vec[i].second;
+            }
+            while(btn.keys.size() < sz){
+                btn.keys.push_back(-1) ;
+                btn.references.push_back(-1);
+            }
+
+            writeNode(filename,btn,visitedNodes[i]);
+        }
+    }
+}
 
 int main()
 {
@@ -265,16 +313,24 @@ int main()
     BTreeNode mm(-1,m,keys,references);
     btree.writeNode(fileName,mm, 9);
 
-    btree.DisplayIndexFileContent(fileName,rows);
+    //btree.DisplayIndexFileContent(fileName,rows);
 
-    cout<<btree.SearchARecord(fileName,80)<<endl;//-1
+    /*cout<<btree.SearchARecord(fileName,80)<<endl;//-1
+    for(int i=0;i<btree.visitedNodes.size();i++){
+        cout<<"visited "<<btree.visitedNodes[i]<<" ";
+     }
 
+     cout<<"ennnnnnnnnnnnnd"<<endl;
      cout<<btree.SearchARecord(fileName,10)<<endl; //48
+     for(int i=0;i<btree.visitedNodes.size();i++){
+        cout<<"visited "<<btree.visitedNodes[i]<<" ";
+     }
     cout<<btree.SearchARecord(fileName,30)<<endl; //132
 
 
-    cout<<btree.SearchARecord(fileName,6)<<endl;//180
+    cout<<btree.SearchARecord(fileName,6)<<endl;//180*/
 
-
+    btree.DeleteRecordFromIndex(fileName,10);
+    btree.DisplayIndexFileContent(fileName,10);
     return 0;
 }

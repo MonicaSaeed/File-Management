@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1671697799 source:d:\fcai\third level #1\files\file-management\btree\main.cpp
+	<iostream>
+	<fstream>
+	<vector>
+

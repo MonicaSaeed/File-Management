@@ -33,6 +33,7 @@ struct BTreeNode {
 
 };
 
+
 // B-tree index on a binary file
 class BTree {
 private:
@@ -47,15 +48,14 @@ public:
         //this->visitedNodes=NULL;
     }
     void CreateIndexFile (string filename, int numberOfRecords, int m);
+    void writeNode(string filename,BTreeNode btn, int nodeNum);
     void DisplayIndexFileContent (string filename,int rows);
     BTreeNode readRecord(string filename,int nodeNum);
-    void writeNode(string filename,BTreeNode btn, int nodeNum);
     int SearchARecord (string filename, int RecordID);
 
-    //int InsertNewRecordAtIndex (string filename, int RecordID, BTreeNode btn);
-
-
 };
+
+
 
 void BTree::CreateIndexFile (string filename, int numberOfRecords, int m){
     //initial write
@@ -87,6 +87,23 @@ void BTree::CreateIndexFile (string filename, int numberOfRecords, int m){
 
 }
 
+// Writes a node to the binary file
+void BTree::writeNode(string filename,BTreeNode btn, int nodeNum) {
+    // Open the file in binary mode
+    fstream file(filename, ios::out | ios::app | ios::binary);
+
+    // Seek to the node position
+    file.seekp(nodeNum * sizeof(BTreeNode), ios::beg);
+
+    // Write the node to the file
+    file.write((char*)&btn, sizeof(BTreeNode));
+
+    // Close the file
+    file.close();
+}
+
+
+
 void BTree::DisplayIndexFileContent (string filename,int rows){
     //initial read
     for(int i=0;i<rows;i++){
@@ -114,6 +131,8 @@ BTreeNode BTree::readRecord(string filename,int nodeNum) {
     // Open the file in binary mode
     fstream file(filename, ios::in | ios::binary);
 
+    file.seekg(0,ios::end);
+
     // Seek to the node position
     file.seekg(nodeNum * sizeof(BTreeNode), ios::beg);
 
@@ -127,20 +146,10 @@ BTreeNode BTree::readRecord(string filename,int nodeNum) {
     return btn;
 }
 
-// Writes a node to the binary file
-void BTree::writeNode(string filename,BTreeNode btn, int nodeNum) {
-    // Open the file in binary mode
-    fstream file(filename, ios::out | ios::app | ios::binary);
 
-    // Seek to the node position
-    file.seekp(nodeNum * sizeof(BTreeNode), ios::beg);
 
-    // Write the node to the file
-    file.write((char*)&btn, sizeof(BTreeNode));
 
-    // Close the file
-    file.close();
-}
+
 
 int BTree::SearchARecord (string filename, int RecordID){
     int refReturn=-1;
@@ -185,10 +194,12 @@ int BTree::SearchARecord (string filename, int RecordID){
                 break;
             }
         }
-    }
-    //cout<<"end"<<endl;
-    return refReturn;
+     }
+     //cout<<"end"<<endl;
+     return refReturn;
 }
+
+
 
 int main()
 {
@@ -208,7 +219,7 @@ int main()
     btree.writeNode(fileName,btn, 0);
 
 
-    keys = {3,7,10,15,30};
+     keys = {3,7,10,15,30};
     references = {2,4,5,3,6};
     BTreeNode b(1,m,keys,references);
     btree.writeNode(fileName,b,1);
@@ -218,55 +229,55 @@ int main()
     BTreeNode n(2,m,keys,references);
     btree.writeNode(fileName,n,2);
 
-    keys = {11,14,12,15,-1};
+     keys = {11,14,12,15,-1};
     references = {192,72,204,108,-1};
     BTreeNode t(3,m,keys,references);
     btree.writeNode(fileName,t,3);
 
-    keys = {5,6,7,-1,-1};
+     keys = {5,6,7,-1,-1};
     references = {132,180,24,-1,-1};
     BTreeNode bt(4,m,keys,references);
     btree.writeNode(fileName,bt,4);
 
 
-    keys = {8,9,10,-1,-1};
+     keys = {8,9,10,-1,-1};
     references = {156,168,48,-1,-1};
     BTreeNode bb(5,m,keys,references);
     btree.writeNode(fileName,bb,5);
 
 
-    keys = {17,18,19,24,30};
+     keys = {17,18,19,24,30};
     references = {216,228,84,60,196};
     BTreeNode bbtt(6,m,keys,references);
     btree.writeNode(fileName,bbtt,6);
 
 
-    keys = {-1, -1, -1, -1, -1};
+     keys = {-1, -1, -1, -1, -1};
     references = {-1, -1, -1, -1, -1};
     BTreeNode nn(7,m,keys,references);
     btree.writeNode(fileName,nn, 7);
 
 
-    keys = {-1, -1, -1, -1, -1};
+     keys = {-1, -1, -1, -1, -1};
     references = {-1, -1, -1, -1, -1};
     BTreeNode bbbbb(8,m,keys,references);
     btree.writeNode(fileName,bbbbb, 8);
 
 
-    keys = {-1, -1, -1, -1, -1};
+     keys = {-1, -1, -1, -1, -1};
     references = {-1, -1, -1, -1, -1};
     BTreeNode ttttt(-1,m,keys,references);
     btree.writeNode(fileName,ttttt, -1);
 
     btree.DisplayIndexFileContent(fileName,rows);
 
-    cout<<"key 80 has reference "<<btree.SearchARecord(fileName,80)<<endl;//-1
+    cout<<btree.SearchARecord(fileName,80)<<endl;//-1
 
-    cout<<"key 10 has reference "<<btree.SearchARecord(fileName,10)<<endl; //48
-    cout<<"key 30 has reference "<<btree.SearchARecord(fileName,30)<<endl; //196
+     cout<<btree.SearchARecord(fileName,10)<<endl; //48
+    cout<<btree.SearchARecord(fileName,30)<<endl; //132
 
 
-    cout<<"key 6 has reference "<<btree.SearchARecord(fileName,6)<<endl;//180
+    cout<<btree.SearchARecord(fileName,6)<<endl;//180
 
 
     return 0;

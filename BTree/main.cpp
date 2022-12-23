@@ -2,7 +2,7 @@
 #include <fstream>
 #include <vector>
 #include<bits/stdc++.h>
-
+#include<cmath>
 using namespace std;
 
 // B-tree node structure
@@ -169,7 +169,7 @@ int BTree::SearchARecord (string filename, int RecordID){
             if(btn.keys[i]>RecordID || btn.keys[i]==RecordID){
                 refReturn=btn.references[i];
                 m=refReturn;
-                if(btn.isLeaf==1){
+               if(btn.isLeaf==1){
                     visitedNodes.push_back(btn.references[i]);
                 }
                 break;
@@ -199,23 +199,25 @@ int BTree::SearchARecord (string filename, int RecordID){
      //cout<<"end"<<endl;
      return refReturn;
 }
-
-
 void BTree::DeleteRecordFromIndex (string filename, int RecordID){
+    int cnt=0;
+    double sz ;
+    int maxxx;
     int searchReturn = SearchARecord(filename,RecordID);
     if(searchReturn != -1)
     {
+        int tempRef;
         for(int i=0;i<visitedNodes.size();i++) //visited
         {
             BTreeNode btn = readRecord(filename,visitedNodes[i]);
+               sz = btn.keys.size();
             for(int j=0 ;j<btn.keys.size();j++)
             {
                 if(btn.keys[j]==RecordID){
                     btn.keys[j]=-1;
                     btn.references[j]=-1;
                 }
-            }
-            int sz = btn.keys.size();
+                }
             vector < pair<int,int> > vec;
             for(int i=0;i<sz;i++){
                 if(btn.keys[i]!=-1){
@@ -223,6 +225,8 @@ void BTree::DeleteRecordFromIndex (string filename, int RecordID){
                     p.first=btn.keys[i];
                     p.second=btn.references[i];*/
                     vec.push_back( make_pair(btn.keys[i],btn.references[i]) );
+
+
                 }
             }
 
@@ -230,23 +234,27 @@ void BTree::DeleteRecordFromIndex (string filename, int RecordID){
             btn.references.clear();
 
             sort(vec.begin(), vec.end());
-
             for(int i=0;i<vec.size();i++){
-                btn.keys[i] = vec[i].first;
-                btn.references[i] = vec[i].second;
+                btn.keys.push_back(vec[i].first) ;
+                btn.references.push_back( vec[i].second);
             }
-            while(btn.keys.size() < sz){
-                btn.keys.push_back(-1) ;
-                btn.references.push_back(-1);
+
+
+            if(btn.keys.size() < sz){
+            btn.keys.push_back(-1) ;
+            btn.references.push_back(-1);
             }
 
             writeNode(filename,btn,visitedNodes[i]);
         }
-    }
+            }
+
 }
+
 
 int main()
 {
+
     // Create a B-tree with a maximum of 5 keys per node
     cout<<"enter rows, m ,file name";
     int rows;cin>>rows;
@@ -332,5 +340,7 @@ int main()
 
     btree.DeleteRecordFromIndex(fileName,10);
     btree.DisplayIndexFileContent(fileName,10);
+
+
     return 0;
 }

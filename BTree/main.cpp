@@ -104,25 +104,15 @@ void BTree::writeNode(string filename,BTreeNode btn, int nodeNum) {
     file.close();
 }
 
-
-
 void BTree::DisplayIndexFileContent (string filename,int rows){
     //initial read
     for(int i=0;i<rows;i++){
         // Read the node from the file(open file)
         BTreeNode readNode = readRecord(filename,i);
+        cout <<setw(8)<< readNode.isLeaf;
 
-        // Print the node values
-        cout << "Is leaf: " << readNode.isLeaf << endl;
-        cout << "m: " << readNode.m << endl;
-        cout << "Keys: ";
-        for (int k : readNode.keys) {
-            cout << k << " ";
-        }
-        cout << endl;
-        cout << "References: ";
-        for (int refe : readNode.references) {
-            cout << refe << " ";
+        for (int i=0;i<readNode.keys.size();i++) {
+            cout <<setw(8)<< readNode.keys[i] << setw(8)<< readNode.references[i];
         }
         cout << endl;
     }
@@ -147,8 +137,6 @@ BTreeNode BTree::readRecord(string filename,int nodeNum) {
 
     return btn;
 }
-
-
 
 int BTree::SearchARecord (string filename, int RecordID){
     visitedNodes.clear();
@@ -179,7 +167,6 @@ int BTree::SearchARecord (string filename, int RecordID){
 
 
 
-
     BTreeNode b;
     if(refReturn!=-1){
         b=readRecord(filename,refReturn);
@@ -199,10 +186,9 @@ int BTree::SearchARecord (string filename, int RecordID){
      //cout<<"end"<<endl;
      return refReturn;
 }
+
 void BTree::DeleteRecordFromIndex (string filename, int RecordID){
-    int cnt=0;
-    double sz ;
-    int maxxx;
+    int sz ;
     int searchReturn = SearchARecord(filename,RecordID);
     if(searchReturn != -1)
     {
@@ -210,14 +196,14 @@ void BTree::DeleteRecordFromIndex (string filename, int RecordID){
         for(int i=0;i<visitedNodes.size();i++) //visited
         {
             BTreeNode btn = readRecord(filename,visitedNodes[i]);
-               sz = btn.keys.size();
+            sz = btn.keys.size();
             for(int j=0 ;j<btn.keys.size();j++)
             {
                 if(btn.keys[j]==RecordID){
                     btn.keys[j]=-1;
                     btn.references[j]=-1;
                 }
-                }
+            }
             vector < pair<int,int> > vec;
             for(int i=0;i<sz;i++){
                 if(btn.keys[i]!=-1){
@@ -225,8 +211,6 @@ void BTree::DeleteRecordFromIndex (string filename, int RecordID){
                     p.first=btn.keys[i];
                     p.second=btn.references[i];*/
                     vec.push_back( make_pair(btn.keys[i],btn.references[i]) );
-
-
                 }
             }
 
@@ -240,21 +224,20 @@ void BTree::DeleteRecordFromIndex (string filename, int RecordID){
             }
 
 
-            if(btn.keys.size() < sz){
+            while(btn.keys.size() < sz){
             btn.keys.push_back(-1) ;
             btn.references.push_back(-1);
             }
 
             writeNode(filename,btn,visitedNodes[i]);
         }
-            }
+    }
 
 }
 
 
 int main()
 {
-
     // Create a B-tree with a maximum of 5 keys per node
     cout<<"enter rows, m ,file name";
     int rows;cin>>rows;
@@ -271,7 +254,7 @@ int main()
     btree.writeNode(fileName,btn, 0);
 
 
-     keys = {3,7,10,15,30};
+    keys = {3,7,10,15,30};
     references = {2,4,5,3,6};
     BTreeNode b(1,m,keys,references);
     btree.writeNode(fileName,b,1);
@@ -321,7 +304,7 @@ int main()
     BTreeNode mm(-1,m,keys,references);
     btree.writeNode(fileName,mm, 9);
 
-    //btree.DisplayIndexFileContent(fileName,rows);
+    btree.DisplayIndexFileContent(fileName,rows);
 
     /*cout<<btree.SearchARecord(fileName,80)<<endl;//-1
     for(int i=0;i<btree.visitedNodes.size();i++){
@@ -338,8 +321,11 @@ int main()
 
     cout<<btree.SearchARecord(fileName,6)<<endl;//180*/
 
+    /*btree.DeleteRecordFromIndex(fileName,7);
     btree.DeleteRecordFromIndex(fileName,10);
-    btree.DisplayIndexFileContent(fileName,10);
+    btree.DeleteRecordFromIndex(fileName,11);
+    btree.DeleteRecordFromIndex(fileName,15);
+    btree.DisplayIndexFileContent(fileName,rows);*/
 
 
     return 0;

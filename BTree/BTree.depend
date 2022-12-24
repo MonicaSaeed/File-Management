@@ -1,8 +1,10 @@
 # depslib dependency file v1.0
-1671701011 source:d:\fcai\third level #1\files\file-management\btree\main.cpp
+1671840746 source:d:\fcai\third level #1\files\file-management\btree\main.cpp
 	<iostream>
 	<fstream>
 	<vector>
+	<bits/stdc++.h>
+	<cmath>
 
 1671736915 source:c:\fcai year 3 2022-2023\github\file-management\btree\main.cpp
 	<iostream>

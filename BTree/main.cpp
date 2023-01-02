@@ -268,9 +268,9 @@ int BTree::SearchNode (string filename, int RecordID){
                 m=refReturn;
                if(btn.isLeaf==1){
                     visitedNodes.push_back(btn.references[i]);
-                    cout<<"push= "<<refReturn<<endl;
+                    //cout<<"push= "<<refReturn<<endl;
                 }
-                cout<<"ref= "<<refReturn<<endl;
+               // cout<<"ref= "<<refReturn<<endl;
                 break;
             }
         }
@@ -350,22 +350,22 @@ int main()
     BTreeNode mm(-1,m,keys,references);
     btree.writeNode(fileName,mm, 9);
 
-    //btree.DisplayIndexFileContent(fileName,rows);
+    btree.DisplayIndexFileContent(fileName,rows);
 
 
 
 
-    //cout<<btree.SearchARecord(fileName,30)<<endl; //132
+    cout<<btree.SearchARecord(fileName,30)<<endl; //196
 
-    //cout<<btree.SearchARecord(fileName,6)<<endl;//180*/
+    cout<<btree.SearchARecord(fileName,6)<<endl;//180
 
-    /*btree.DeleteRecordFromIndex(fileName,7);
+    btree.DeleteRecordFromIndex(fileName,7);
     btree.DeleteRecordFromIndex(fileName,10);
     btree.DeleteRecordFromIndex(fileName,11);
     btree.DeleteRecordFromIndex(fileName,15);
-    btree.DisplayIndexFileContent(fileName,rows);*/
+    btree.DisplayIndexFileContent(fileName,rows);
 
-    cout<<btree.SearchNode(fileName,13)<<endl;
+    //cout<<btree.SearchNode(fileName,12)<<endl;
 
 
     return 0;

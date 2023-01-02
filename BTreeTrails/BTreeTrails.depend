@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1672664601 source:c:\fcai year 3 2022-2023\files management\btreetrails\main.cpp
+	<iostream>
+	<fstream>
+	<vector>
+	<bits/stdc++.h>
+	<cmath>
+

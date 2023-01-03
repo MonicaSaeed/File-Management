@@ -63,6 +63,8 @@ public:
     int SearchNode (string filename, int RecordID);
     int Search(string filename, int RecordID);
     int splitNode(string filename, int RecordID, int Reference, int currentNode,BTreeNode node);
+    void mergeNode(string filename, int currentNode, BTreeNode node);
+
 
 };
 
@@ -215,60 +217,84 @@ int BTree::SearchARecord (string filename, int RecordID)
     return refReturn;
 }
 
-void BTree::DeleteRecordFromIndex (string filename, int RecordID)
+
+void BTree::DeleteRecordFromIndex(string filename, int RecordID)
 {
-    int sz ;
-    int searchReturn = SearchARecord(filename,RecordID);
-    if(searchReturn != -1)
+    // Search for the node where the record is located
+    SearchARecord(filename, RecordID);
+    int currentNode=visitedNodes[visitedNodes.size()-1];
+    BTreeNode node = readRecord(filename, currentNode);
+
+    // Find the index of the record in the node
+    int i;
+    for (i = 0; i < node.keys.size(); i++)
     {
-        int tempRef;
-        for(int i=0; i<visitedNodes.size(); i++) //visited
+        if (node.keys[i] == RecordID)
         {
-            BTreeNode btn = readRecord(filename,visitedNodes[i]);
-            sz = btn.keys.size();
-            for(int j=0 ; j<btn.keys.size(); j++)
-            {
-                if(btn.keys[j]==RecordID)
-                {
-                    btn.keys[j]=-1;
-                    btn.references[j]=-1;
-                }
-            }
-            vector < pair<int,int> > vec;
-            for(int i=0; i<sz; i++)
-            {
-                if(btn.keys[i]!=-1)
-                {
-                    /*pair<int,int> p;
-                    p.first=btn.keys[i];
-                    p.second=btn.references[i];*/
-                    vec.push_back( make_pair(btn.keys[i],btn.references[i]) );
-                }
-            }
-
-            btn.keys.clear();
-            btn.references.clear();
-
-            sort(vec.begin(), vec.end());
-            for(int i=0; i<vec.size(); i++)
-            {
-                btn.keys.push_back(vec[i].first) ;
-                btn.references.push_back( vec[i].second);
-            }
-
-
-            while(btn.keys.size() < sz)
-            {
-                btn.keys.push_back(-1) ;
-                btn.references.push_back(-1);
-            }
-
-            writeNode(filename,btn,visitedNodes[i]);
+            break;
         }
     }
 
-}
+    // If the node is a leaf, delete the record from the node
+    if (node.isLeaf == 0)
+    {
+        node.keys.erase(node.keys.begin() + i);
+        node.references.erase(node.references.begin() + i);
+        node.keys.insert(node.keys.begin() + i,-1);
+        node.references.insert(node.references.begin() + i,-1);
+        int sz = node.m;
+        vector < pair<int,int> > vec;
+        for(int i=0;i<sz;i++){
+            if(node.keys[i]!=-1){
+                vec.push_back( make_pair(node.keys[i],node.references[i]) );
+            }
+        }
 
+        node.keys.clear();
+        node.references.clear();
+        cout<<"clear "<<node.keys.size()<<endl;
+        for(int i=0;i<vec.size();i++){
+            node.keys.push_back(vec[i].first);
+            node.references.push_back(vec[i].second);
+            //cout<<node.keys[i] <<"bllllla"<<
+        }
+        while(node.keys.size() < sz){
+            node.keys.push_back(-1) ;
+            node.references.push_back(-1);
+        }
+        writeNode(filename, node, currentNode);
+    }
+    else
+    {
+        // If the node is not a leaf, replace the record with the predecessor and delete the predecessor
+        int predecessorNode = node.references[i];
+        BTreeNode predecessor = readRecord(filename, predecessorNode);
+        while (predecessor.isLeaf == 1) //non leaf
+        {
+            predecessorNode = predecessor.references[predecessor.references.size() - 1];
+            predecessor = readRecord(filename, predecessorNode);
+        }
+        node.keys[i] = predecessor.keys[predecessor.keys.size() - 1];
+        node.references[i] = predecessor.references[predecessor.references.size() - 1];
+        writeNode(filename, node, currentNode);
+        predecessor.keys.erase(predecessor.keys.begin() + predecessor.keys.size() - 1);
+        predecessor.references.erase(predecessor.references.begin() + predecessor.references.size() - 1);
+        predecessor.keys.insert(predecessor.keys.begin() + predecessor.keys.size(),-1);
+        predecessor.references.insert(predecessor.references.begin() + predecessor.references.size(),-1);
+        writeNode(filename, predecessor, predecessorNode);
+
+        /*int predecessorRecord = predecessor.keys[predecessorNode];
+
+
+
+
+
+        node.keys[i] = predecessorRecord;
+        writeNode(filename, node, currentNode);*/
+        //DeleteRecordFromIndex(filename, predecessorRecord);
+    }
+
+}
 /*int BTree::Search(string filename, int RecordID) {
     visitedNodes.clear();
     int refReturn = 0; //insert root
@@ -538,7 +564,78 @@ int BTree::SearchNode (string filename, int RecordID)
     return refReturn;
 }
 
+void BTree::mergeNode(string filename, int currentNode, BTreeNode node) {
+    // Check if the node is a leaf node
+    if (node.isLeaf == 0) {
+        // Find the index of the reference to the next node
+        int nextIndex = node.references.size();
 
+        // Read the next node
+        BTreeNode nextNode = readRecord(filename, node.references[nextIndex]);
+
+        // Append the keys and references from the next node to the current node
+        node.keys.insert(node.keys.end(), nextNode.keys.begin(), nextNode.keys.end());
+        node.references.insert(node.references.end(), nextNode.references.begin(), nextNode.references.end());
+
+        // Write the updated current node to the file
+        writeNode(filename, node, currentNode);
+
+        // Remove the reference to the next node from the parent
+        BTreeNode parent = readRecord(filename, visitedNodes[visitedNodes.size() - 2]);
+        int i;
+        for (i = 0; i < parent.keys.size(); i++) {
+            if (parent.references[i] == currentNode) {
+                break;
+            }
+        }
+        parent.keys.erase(parent.keys.begin() + i);
+        parent.references.erase(parent.references.begin() + i );
+        writeNode(filename, parent, visitedNodes[visitedNodes.size() - 2]);
+
+        // If the parent has less than the minimum number of keys, merge it with one of its siblings
+        if (parent.keys.size() < ceil(node.m / 2)) {
+            if (i > 0) {
+                BTreeNode leftSibling = readRecord(filename, parent.references[i - 1]);
+                if (leftSibling.keys.size() > ceil(node.m / 2)) {
+                    // Rotate keys from the left sibling to the parent
+                    parent.keys.insert(parent.keys.begin() + i - 1, leftSibling.keys[leftSibling.keys.size() - 1]);
+                    leftSibling.keys.pop_back();
+                    parent.references.insert(parent.references.begin() + i,
+                                             leftSibling.references[leftSibling.references.size() - 1]);
+                    leftSibling.references.pop_back();
+                    writeNode(filename, parent, visitedNodes[visitedNodes.size() - 2]);
+                    writeNode(filename, leftSibling, parent.references[i - 1]);
+                } else {
+                    // Merge the left sibling and the parent
+                    leftSibling.keys.insert(leftSibling.keys.end(), parent.keys.begin(), parent.keys.end());
+                    leftSibling.references.insert(leftSibling.references.end(), parent.references.begin(),parent.references.end());
+                    writeNode(filename, leftSibling, parent.references[i - 1]);
+                    visitedNodes.pop_back();
+                    mergeNode(filename, visitedNodes[visitedNodes.size() - 1], leftSibling);
+                }
+            } else {
+                BTreeNode rightSibling = readRecord(filename, parent.references[i + 1]);
+                if (rightSibling.keys.size() > ceil(node.m / 2)) {
+                    // Rotate keys from the right sibling to the parent
+                    parent.keys.insert(parent.keys.begin() + i, rightSibling.keys[0]);
+                    rightSibling.keys.erase(rightSibling.keys.begin());
+                    parent.references.insert(parent.references.begin() + i + 1, rightSibling.references[0]);
+                    rightSibling.references.erase(rightSibling.references.begin());
+                    writeNode(filename, parent, visitedNodes[visitedNodes.size() - 2]);
+                    writeNode(filename, rightSibling, parent.references[i + 1]);
+                } else {
+                    // Merge the right sibling and the parent
+                    parent.keys.insert(parent.keys.end(), rightSibling.keys.begin(), rightSibling.keys.end());
+                    parent.references.insert(parent.references.end(), rightSibling.references.begin(),
+                                             rightSibling.references.end());
+                    writeNode(filename, parent, visitedNodes[visitedNodes.size() - 2]);
+                    visitedNodes.pop_back();
+                    mergeNode(filename, visitedNodes[visitedNodes.size() - 1], parent);
+                }
+            }
+        }
+    }
+}
 
 
 int main()
@@ -552,7 +649,7 @@ int main()
     string fileName;
     cin>>fileName;
     BTree btree(0, 7);
-    // btree.CreateIndexFile(fileName,rows,m);
+     //btree.CreateIndexFile(fileName,rows,m);
     // btree.DisplayIndexFileContent(fileName,rows);
 
 
@@ -612,20 +709,23 @@ int main()
     BTreeNode mm(-1,m,keys,references);
     btree.writeNode(fileName,mm, 9);
 
-    //btree.DisplayIndexFileContent(fileName,rows);
-    // cout<<btree.SearchARecord(fileName,30)<<endl; //196
-//
-    cout<<btree.SearchARecord(fileName,6)<<endl;//180
+   // btree.DisplayIndexFileContent(fileName,rows);
+     //cout<<btree.SearchARecord(fileName,30)<<endl; //196
 
-    /* btree.DeleteRecordFromIndex(fileName,7);
-     btree.DeleteRecordFromIndex(fileName,10);
+    //cout<<btree.SearchARecord(fileName,6)<<endl;//180
+
+    btree.DisplayIndexFileContent(fileName,rows);
+    cout<<endl<<endl;
+     btree.DeleteRecordFromIndex(fileName,2);
+     btree.DisplayIndexFileContent(fileName,rows);
+     /*btree.DeleteRecordFromIndex(fileName,10);
      btree.DeleteRecordFromIndex(fileName,11);
      btree.DeleteRecordFromIndex(fileName,15);
-     btree.DisplayIndexFileContent(fileName,rows);
-    */
+     btree.DisplayIndexFileContent(fileName,rows);*/
+
     //cout<<btree.SearchNode(fileName,12)<<endl;
-    btree.InsertNewRecordAtIndex(fileName, 4, 500);
-    btree.DisplayIndexFileContent(fileName,rows);
+    //btree.InsertNewRecordAtIndex(fileName, 4, 500);
+    //btree.DisplayIndexFileContent(fileName,rows);
 
 
     return 0;

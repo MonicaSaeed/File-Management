@@ -255,7 +255,7 @@ void BTree::DeleteRecordFromIndex(string filename, int RecordID)
 
         node.keys.clear();
         node.references.clear();
-        cout<<"clear "<<node.keys.size()<<endl;
+        //cout<<"clear "<<node.keys.size()<<endl;
         for(int i=0;i<vec.size();i++){
             node.keys.push_back(vec[i].first);
             node.references.push_back(vec[i].second);
@@ -266,7 +266,16 @@ void BTree::DeleteRecordFromIndex(string filename, int RecordID)
             node.references.push_back(-1);
         }
         writeNode(filename, node, currentNode);
-        //mergeNode(filename,currentNode,node);
+        /*int checkM=0;
+        for(int k=0;k<node.m;k++){
+            if(node.keys[k]!=-1){
+                checkM++;
+            }
+        }
+        if(checkM<node.m){
+            mergeNode(filename,currentNode,node);
+        }*/
+
     }
 
     for(int i=0;i<visitedNodes.size();i++){
@@ -283,7 +292,6 @@ void BTree::DeleteRecordFromIndex(string filename, int RecordID)
         //mergeNode(filename,i,Vnode);
     }
 }
-
 int BTree::splitNode(string filename,int RecordID, int Reference, int currentNode,BTreeNode node)
 {
     int mx=0, mx2=0;
@@ -521,7 +529,110 @@ int BTree::SearchNode (string filename, int RecordID)
     return refReturn;
 }
 
+void BTree::mergeNode(string filename, int currentNode, BTreeNode node) {
+    // Check if the node is a leaf node
+    if (node.isLeaf == 0)
+    {
+        cout<<"firstif"<<endl;
 
+        int mxKeyNode;
+        for(int i=0;i<node.m;i++){
+            if(node.keys[i+1]==-1 ){
+                mxKeyNode=node.keys[i];
+            }
+        }
+    cout<<mxKeyNode<<"max"<<endl;
+        // Remove the reference to the next node from the parent
+        BTreeNode parent = readRecord(filename, visitedNodes[visitedNodes.size() - 2]);
+
+        //merge right left or left
+
+
+        int i;
+        for (i = 0; i < parent.keys.size(); i++) {
+            if (parent.references[i] == mxKeyNode) {
+                break;
+            }
+        }
+
+        bool RL=false;
+
+        if(i!=parent.m )
+        {
+            BTreeNode RightNode = readRecord(filename,parent.references[i+1]);
+            //merge
+            if(RightNode.keys.size()+node.keys.size()<=RightNode.m){
+              vector <pair<int,int>> newVect;
+              for(int j=0;j<node.keys.size();j++){
+                if(node.keys[i]!=-1){
+                    newVect.push_back(make_pair(node.keys[i],node.references[i]));
+                }
+              }
+              for(int j=0;j<RightNode.keys.size();j++){
+                if(RightNode.keys[i]!=-1){
+                    newVect.push_back(make_pair(RightNode.keys[i],RightNode.references[i]));
+                }
+              }
+              RightNode.keys.clear();
+              RightNode.references.clear();
+              for(int j=0;j<newVect.size();j++){
+                RightNode.keys.push_back(newVect[j].first);
+                RightNode.references.push_back(newVect[j].second);
+              }
+              writeNode(filename,RightNode,parent.references[i+1]);
+              node.keys.clear();
+              node.references.clear();
+              for(int j=0;j<node.m;j++){
+                node.keys.push_back(-1);
+                node.references.push_back(-1);
+              }
+              node.isLeaf=-1;
+              writeNode(filename,node,currentNode);
+              int link = firstEmptyNode;
+              firstEmptyNode=currentNode;
+              currentNode=link;
+            }
+
+            for (int j = 0; j < parent.keys.size(); j++) {
+                if (parent.keys[i] == mxKeyNode){
+                    parent.keys[i]=-1;
+                    parent.references[i]=-1;
+                }
+            }
+            int sz = parent.m;
+            vector < pair<int,int> > parentvec;
+            for(int i=0;i<sz;i++){
+                if(parent.keys[i]!=-1){
+                    parentvec.push_back( make_pair(parent.keys[i],parent.references[i]) );
+                }
+            }
+
+            parent.keys.clear();
+            parent.references.clear();
+            //cout<<"clear "<<node.keys.size()<<endl;
+            for(int j=0;j<parentvec.size();j++){
+                parent.keys.push_back(parentvec[j].first);
+                parent.references.push_back(parentvec[j].second);
+                //cout<<node.keys[i] <<"bllllla"<<
+            }
+            while(parent.keys.size() < sz){
+                parent.keys.push_back(-1) ;
+                parent.references.push_back(-1);
+            }
+            writeNode(filename,parent,visitedNodes[visitedNodes.size() - 2]);
+            RL=true;
+        }
+        /*if(i>0 && RL==false){
+            BTreeNode leftNode = readRecord(filename,parent.references[i-1]);
+            if(leftNode.keys.size()+node.keys.size()<=leftNode.m){
+              //vector<pair<int ,int >
+
+            }
+
+        }*/
+
+    }
+}
 int main()
 {
     // Create a B-tree with a maximum of 5 keys per node
@@ -598,15 +709,23 @@ int main()
 
     //cout<<btree.SearchARecord(fileName,6)<<endl;//180
 
-    btree.DisplayIndexFileContent(fileName,rows);
-    cout<<endl<<endl;
-     btree.DeleteRecordFromIndex(fileName,6);
-     btree.DeleteRecordFromIndex(fileName,30);
+    //btree.DisplayIndexFileContent(fileName,rows);
+    //cout<<endl<<endl;
+     cout<<"display after delete "<<endl;
      btree.DisplayIndexFileContent(fileName,rows);
-     /*btree.DeleteRecordFromIndex(fileName,10);
-     btree.DeleteRecordFromIndex(fileName,11);
-     btree.DeleteRecordFromIndex(fileName,15);
-     btree.DisplayIndexFileContent(fileName,rows);*/
+     btree.DeleteRecordFromIndex(fileName,6);
+     btree.DeleteRecordFromIndex(fileName,3);
+     cout<<"display before search "<<endl;
+     btree.DisplayIndexFileContent(fileName,rows);
+
+     /*cout<<"display after search "<<endl;
+     btree.DisplayIndexFileContent(fileName,rows);
+     cout<<btree.SearchARecord(fileName,30)<<endl; //196
+     cout<<btree.SearchARecord(fileName,6)<<endl;//180*/
+
+
+
+
 
     //cout<<btree.SearchNode(fileName,12)<<endl;
     //btree.InsertNewRecordAtIndex(fileName, 4, 500);

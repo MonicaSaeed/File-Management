@@ -448,8 +448,8 @@ void sortPrimaryIndex(fstream &EPrimaryIndex){
 void deletePrimaryIndex(fstream &EPrimaryIndex,string id){
     vector <pair<string,int>>v2(v); //v carries the primary index
     v.clear();
-    cout<<v2.size()<<"v2 size"<<endl;
-    cout<<v.size()<<"v size befor"<<endl;
+    //cout<<v2.size()<<"v2 size"<<endl;
+    //cout<<v.size()<<"v size befor"<<endl;
     int s=v2.size();
     for(int i=0;i<s;i++){
         if(v2[i].first != id){
@@ -457,7 +457,7 @@ void deletePrimaryIndex(fstream &EPrimaryIndex,string id){
         }
     }
     s=v.size();
-    cout<<v.size()<<"v size after"<<endl;
+    //cout<<v.size()<<"v size after"<<endl;
     //  sortPrimaryIndex(EPrimaryIndex);
     EPrimaryIndex.open("EPrimaryIndex.txt", ios::in | ios::out | ios::trunc);
     for(int i=0;i<v.size();i++)
@@ -564,7 +564,6 @@ void addEmployees(fstream &Employees, fstream &EPrimaryIndex, fstream &ESecondar
         value=-1;
     }
 
-    cout<<"this is valueeee------"<<value<<endl;
     if(value==-1)
     {
         Employees.seekp(0, ios::end);
@@ -618,7 +617,7 @@ void addEmployees(fstream &Employees, fstream &EPrimaryIndex, fstream &ESecondar
 
                 /////////////////////////////////////////////////////////// if(nextAddressInLL==0){nextAddressInLL=-1;}
 
-                cout<<currentAddressInLL<<endl;
+                ///cout<<currentAddressInLL<<endl;
                 if(currentAddressInLL==0)
                 {
                     if(nextAddressInLL==0){nextAddressInLL=-1;}
@@ -661,7 +660,7 @@ void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID)
     {
         int deleteBO= searchEmployeeWithID(employeeID);
         Employee.seekg(deleteBO,ios::beg);
-        cout<<Employee.tellg()<<endl;
+        //cout<<Employee.tellg()<<endl;
         string deletedRlength;
         char temp;
         for(int i=0; i<3; i++)
@@ -687,12 +686,12 @@ void deleteEmployee(fstream &Employee,fstream &EPrimaryIndex, string employeeID)
         transDRL>>intDRL ;
         transPH>>intPH;
 
-        cout<<Employee.tellp()<<endl;
+        //cout<<Employee.tellp()<<endl;
         if(intPH==0)
         {
             intPH=-1;
         }
-        cout<<'*'<<intDRL<<'|'<<intPH<<'|'<<endl;
+        //cout<<'*'<<intDRL<<'|'<<intPH<<'|'<<endl;
         Employee<<'*'<<intDRL+3<<'|'<<intPH<<'|'; //+3 byte for byte offset(000)
         Employee.seekp(0,ios::beg);
         Employee << setfill ('0') << setw (10);
@@ -819,7 +818,7 @@ void addDepartement(fstream &Department, fstream &DPrimaryIndex,fstream &DSecond
         value=-1;
     }
 
-    cout<<"this is valueeee------"<<value<<endl;
+    //cout<<"this is valueeee------"<<value<<endl;
     if(value==-1)
     {
         Department.seekp(0, ios::end);
@@ -1028,7 +1027,7 @@ void deleteDepPrimaryIndex(fstream &DPrimaryIndex,string DepId)
         }
     }
     s=vDepPI.size();
-    cout<<vDepPI.size()<<"v size after"<<endl;
+    //cout<<vDepPI.size()<<"v size after"<<endl;
     //  sortPrimaryIndex(EPrimaryIndex);
     DPrimaryIndex.open("DPrimaryIndex.txt", ios::in | ios::out | ios::trunc);
     for(int i=0;i<v.size();i++)
@@ -1127,7 +1126,7 @@ void deleteDepartment(fstream &Department,fstream &DPrimaryIndex, string Did)
     {
         int deleteBO= searchDepWithDID(Did);
         Department.seekg(deleteBO,ios::beg);
-        cout<<Department.tellg()<<endl;
+        //cout<<Department.tellg()<<endl;
         string deletedRlength;
         char temp;
         for(int i=0; i<3; i++)
@@ -1153,12 +1152,12 @@ void deleteDepartment(fstream &Department,fstream &DPrimaryIndex, string Did)
         transDRL>>intDRL ;
         transPH>>intPH;
 
-        cout<<Department.tellp()<<endl;
+        //cout<<Department.tellp()<<endl;
         if(intPH==0)
         {
             intPH=-1;
         }
-        cout<<'*'<<intDRL<<'|'<<intPH<<'|'<<endl;
+        //cout<<'*'<<intDRL<<'|'<<intPH<<'|'<<endl;
         Department<<'*'<<intDRL+3<<'|'<<intPH<<'|'; //+3 byte for byte offset(000)
         Department.seekp(0,ios::beg);
         Department << setfill ('0') << setw (10);
